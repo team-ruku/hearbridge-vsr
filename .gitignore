@@ -1,0 +1,9 @@
+__pycache__/
+*.py[cod]
+*$py.class
+.idea/
+*.pyc
+*.tar
+.DS_Store
+models/*/*
+!models/*/.gitkeep
