@@ -3,8 +3,8 @@ import torch
 import pickle
 from configparser import ConfigParser
 
-from pipelines.model import AVSR
-from pipelines.data.data_module import AVSRDataLoader
+from .model import VSR
+from .loader import Loader
 
 
 class InferencePipeline(torch.nn.Module):
@@ -30,8 +30,8 @@ class InferencePipeline(torch.nn.Module):
         lm_weight = config.getfloat("decode", "lm_weight")
         beam_size = config.getint("decode", "beam_size")
 
-        self.dataloader = AVSRDataLoader(speed_rate=input_v_fps / model_v_fps)
-        self.model = AVSR(
+        self.dataloader = Loader(speed_rate=input_v_fps / model_v_fps)
+        self.model = VSR(
             model_path,
             model_conf,
             rnnlm,
@@ -43,7 +43,7 @@ class InferencePipeline(torch.nn.Module):
             device,
         )
 
-        from pipelines.detectors.mediapipe.detector import LandmarksDetector
+        from pipelines.detector import LandmarksDetector
 
         self.landmarks_detector = LandmarksDetector()
 

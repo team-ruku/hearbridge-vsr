@@ -12,7 +12,7 @@ from espnet.nets.scorers.length_bonus import LengthBonus
 from espnet.nets.pytorch_backend.e2e_asr_transformer import E2E
 
 
-class AVSR(torch.nn.Module):
+class VSR(torch.nn.Module):
     def __init__(
         self,
         model_path,
@@ -25,7 +25,7 @@ class AVSR(torch.nn.Module):
         beam_size=40,
         device="cuda:0",
     ):
-        super(AVSR, self).__init__()
+        super(VSR, self).__init__()
         self.device = device
 
         with open(model_conf, "rb") as f:

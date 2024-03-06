@@ -1,6 +1,6 @@
 import torch
 import hydra
-from pipelines.pipeline import InferencePipeline
+from pipelines import InferencePipeline
 
 
 @hydra.main(version_base=None, config_path="configs", config_name="hydra")
