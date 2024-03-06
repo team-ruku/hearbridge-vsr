@@ -16,10 +16,8 @@ def threeD_to_2D_tensor(x):
     return x.reshape(n_batch * s_time, n_channels, sx, sy)
 
 
-
 class Conv3dResNet(torch.nn.Module):
-    """Conv3dResNet module
-    """
+    """Conv3dResNet module"""
 
     def __init__(self, backbone_type="resnet", relu_type="swish"):
         """__init__.
@@ -31,12 +29,13 @@ class Conv3dResNet(torch.nn.Module):
         self.frontend_nout = 64
         self.trunk = ResNet(BasicBlock, [2, 2, 2, 2], relu_type=relu_type)
         self.frontend3D = nn.Sequential(
-            nn.Conv3d(1, self.frontend_nout, (5, 7, 7), (1, 2, 2), (2, 3, 3), bias=False),
+            nn.Conv3d(
+                1, self.frontend_nout, (5, 7, 7), (1, 2, 2), (2, 3, 3), bias=False
+            ),
             nn.BatchNorm3d(self.frontend_nout),
             Swish(),
-            nn.MaxPool3d((1, 3, 3), (1, 2, 2), (0, 1, 1))
+            nn.MaxPool3d((1, 3, 3), (1, 2, 2), (0, 1, 1)),
         )
-
 
     def forward(self, xs_pad):
         B, C, T, H, W = xs_pad.size()

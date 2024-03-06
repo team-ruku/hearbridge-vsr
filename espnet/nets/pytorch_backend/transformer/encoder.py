@@ -9,7 +9,8 @@
 import torch
 
 from espnet.nets.pytorch_backend.nets_utils import rename_state_dict
-#from espnet.nets.pytorch_backend.transducer.vgg import VGG2L
+
+# from espnet.nets.pytorch_backend.transducer.vgg import VGG2L
 from espnet.nets.pytorch_backend.transformer.attention import (
     MultiHeadedAttention,  # noqa: H301
     RelPositionMultiHeadedAttention,  # noqa: H301
@@ -19,7 +20,7 @@ from espnet.nets.pytorch_backend.transformer.convolution import ConvolutionModul
 from espnet.nets.pytorch_backend.transformer.embedding import (
     PositionalEncoding,  # noqa: H301
     RelPositionalEncoding,  # noqa: H301
-    LegacyRelPositionalEncoding, # noqa: H301
+    LegacyRelPositionalEncoding,  # noqa: H301
 )
 from espnet.nets.pytorch_backend.transformer.encoder_layer import EncoderLayer
 from espnet.nets.pytorch_backend.transformer.layer_norm import LayerNorm
@@ -32,8 +33,8 @@ from espnet.nets.pytorch_backend.transformer.repeat import repeat
 from espnet.nets.pytorch_backend.transformer.subsampling import Conv2dSubsampling
 from espnet.nets.pytorch_backend.transformer.raw_embeddings import VideoEmbedding
 from espnet.nets.pytorch_backend.transformer.raw_embeddings import AudioEmbedding
-from espnet.nets.pytorch_backend.backbones.conv3d_extractor  import Conv3dResNet
-from espnet.nets.pytorch_backend.backbones.conv1d_extractor  import Conv1dResNet
+from espnet.nets.pytorch_backend.backbones.conv3d_extractor import Conv3dResNet
+from espnet.nets.pytorch_backend.backbones.conv1d_extractor import Conv1dResNet
 
 
 def _pre_hook(
@@ -147,12 +148,13 @@ class Encoder(torch.nn.Module):
             )
         elif isinstance(input_layer, torch.nn.Module):
             self.embed = torch.nn.Sequential(
-                input_layer, pos_enc_class(attention_dim, positional_dropout_rate),
+                input_layer,
+                pos_enc_class(attention_dim, positional_dropout_rate),
             )
         elif input_layer in ["conv1d", "conv3d"]:
             self.embed = torch.nn.Sequential(
                 torch.nn.Linear(512, attention_dim),
-                pos_enc_class(attention_dim, positional_dropout_rate)
+                pos_enc_class(attention_dim, positional_dropout_rate),
             )
         elif input_layer is None:
             self.embed = torch.nn.Sequential(
@@ -245,7 +247,7 @@ class Encoder(torch.nn.Module):
             xs, masks = self.embed(xs, masks)
         else:
             xs = self.embed(xs)
-        
+
         xs, masks = self.encoders(xs, masks)
 
         if isinstance(xs, tuple):

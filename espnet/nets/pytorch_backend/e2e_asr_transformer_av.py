@@ -188,16 +188,18 @@ class E2E(torch.nn.Module):
             "--dunits", default=320, type=int, help="Number of decoder hidden units"
         )
         # -- pretrain
-        group.add_argument("--pretrain-dataset",
+        group.add_argument(
+            "--pretrain-dataset",
             default="",
             type=str,
-            help='pre-trained dataset for encoder'
+            help="pre-trained dataset for encoder",
         )
         # -- custom name
-        group.add_argument("--custom-pretrain-name",
+        group.add_argument(
+            "--custom-pretrain-name",
             default="",
             type=str,
-            help='pre-trained model for encoder'
+            help="pre-trained model for encoder",
         )
         return parser
 
@@ -216,7 +218,10 @@ class E2E(torch.nn.Module):
             args.transformer_attn_dropout_rate = args.dropout_rate
         # Check the relative positional encoding type
         self.rel_pos_type = getattr(args, "rel_pos_type", None)
-        if self.rel_pos_type is None and args.transformer_encoder_attn_layer_type == "rel_mha":
+        if (
+            self.rel_pos_type is None
+            and args.transformer_encoder_attn_layer_type == "rel_mha"
+        ):
             args.transformer_encoder_attn_layer_type = "legacy_rel_mha"
             logging.warning(
                 "Using legacy_rel_pos and it will be deprecated in the future."

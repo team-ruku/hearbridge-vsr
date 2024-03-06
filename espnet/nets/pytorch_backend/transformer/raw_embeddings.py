@@ -1,8 +1,8 @@
 import torch
 import logging
 
-from espnet.nets.pytorch_backend.backbones.conv3d_extractor  import Conv3dResNet
-from espnet.nets.pytorch_backend.backbones.conv1d_extractor  import Conv1dResNet
+from espnet.nets.pytorch_backend.backbones.conv3d_extractor import Conv3dResNet
+from espnet.nets.pytorch_backend.backbones.conv1d_extractor import Conv1dResNet
 
 
 class VideoEmbedding(torch.nn.Module):
@@ -13,12 +13,17 @@ class VideoEmbedding(torch.nn.Module):
     :param flaot dropout_rate: dropout rate
     """
 
-    def __init__(self, idim, odim, dropout_rate, pos_enc_class, backbone_type="resnet", relu_type="prelu"):
+    def __init__(
+        self,
+        idim,
+        odim,
+        dropout_rate,
+        pos_enc_class,
+        backbone_type="resnet",
+        relu_type="prelu",
+    ):
         super(VideoEmbedding, self).__init__()
-        self.trunk = Conv3dResNet(
-            backbone_type=backbone_type,
-            relu_type=relu_type
-        )
+        self.trunk = Conv3dResNet(backbone_type=backbone_type, relu_type=relu_type)
         self.out = torch.nn.Sequential(
             torch.nn.Linear(idim, odim),
             pos_enc_class,
@@ -49,7 +54,15 @@ class AudioEmbedding(torch.nn.Module):
     :param flaot dropout_rate: dropout rate
     """
 
-    def __init__(self, idim, odim, dropout_rate, pos_enc_class, relu_type="prelu", a_upsample_ratio=1):
+    def __init__(
+        self,
+        idim,
+        odim,
+        dropout_rate,
+        pos_enc_class,
+        relu_type="prelu",
+        a_upsample_ratio=1,
+    ):
         super(AudioEmbedding, self).__init__()
         self.trunk = Conv1dResNet(
             relu_type=relu_type,
@@ -71,7 +84,7 @@ class AudioEmbedding(torch.nn.Module):
         """
         x_resnet, x_mask = self.trunk(x, x_mask)
         x = self.out(x_resnet)
-        if extract_feats:                                                        
-            return x, x_mask, x_resnet                                           
-        else:                                                                    
+        if extract_feats:
+            return x, x_mask, x_resnet
+        else:
             return x, x_mask
