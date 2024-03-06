@@ -9,12 +9,12 @@ from espnet.asr.asr_utils import add_results_to_json
 from espnet.nets.batch_beam_search import BatchBeamSearch
 from espnet.nets.lm_interface import dynamic_import_lm
 from espnet.nets.scorers.length_bonus import LengthBonus
-from espnet.nets.pytorch_backend.e2e_asr_transformer import E2E
 
 
-class VSR(torch.nn.Module):
+class AVSR(torch.nn.Module):
     def __init__(
         self,
+        modality,
         model_path,
         model_conf,
         rnnlm=None,
@@ -25,8 +25,13 @@ class VSR(torch.nn.Module):
         beam_size=40,
         device="cuda:0",
     ):
-        super(VSR, self).__init__()
+        super(AVSR, self).__init__()
         self.device = device
+
+        if modality == "audiovisual":
+            from espnet.nets.pytorch_backend.e2e_asr_transformer_av import E2E
+        else:
+            from espnet.nets.pytorch_backend.e2e_asr_transformer import E2E
 
         with open(model_conf, "rb") as f:
             confs = json.load(f)
