@@ -10,6 +10,7 @@ cd hearbridge-vsr
 ```
 
 2. Setup the environment.
+
 ```Shell
 conda create -y -n hearbridge-vsr python=3.8
 conda activate hearbridge-vsr
@@ -31,5 +32,5 @@ conda install -c conda-forge ffmpeg
 5. RUN
 
 ```Shell
-python3 app.py data_filename=[data_filename]
+python3 . data_filename=[data_filename]
 ```

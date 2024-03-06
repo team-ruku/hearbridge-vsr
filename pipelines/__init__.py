@@ -3,12 +3,15 @@ import torch
 import pickle
 from configparser import ConfigParser
 
+from pipelines.detector import LandmarksDetector
+
+
 from .model import VSR
 from .loader import Loader
 
 
 class InferencePipeline(torch.nn.Module):
-    def __init__(self, config_filename, device="cuda:0"):
+    def __init__(self, config_filename, device_override=""):
         super(InferencePipeline, self).__init__()
 
         config = ConfigParser()
@@ -30,6 +33,8 @@ class InferencePipeline(torch.nn.Module):
         lm_weight = config.getfloat("decode", "lm_weight")
         beam_size = config.getint("decode", "beam_size")
 
+        device = torch.device(self.__device_automatch(device_override))
+
         self.dataloader = Loader(speed_rate=input_v_fps / model_v_fps)
         self.model = VSR(
             model_path,
@@ -42,8 +47,6 @@ class InferencePipeline(torch.nn.Module):
             beam_size,
             device,
         )
-
-        from pipelines.detector import LandmarksDetector
 
         self.landmarks_detector = LandmarksDetector()
 
@@ -62,3 +65,14 @@ class InferencePipeline(torch.nn.Module):
         data = self.dataloader.load_data(data_filename, landmarks)
         transcript = self.model.infer(data)
         return transcript
+
+    def __device_automatch(self, override: str = "") -> str:
+        if override:
+            return override
+
+        if torch.cuda.is_available():
+            return "cuda:0"
+        elif torch.backends.mps.is_available():
+            return "mps"
+
+        return "cpu"

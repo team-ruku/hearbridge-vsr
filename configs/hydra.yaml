@@ -1,12 +1,12 @@
 # config.yaml
 
-defaults:  
-  - _self_  
-  - override hydra/hydra_logging: disabled  
-  - override hydra/job_logging: disabled  
-hydra:  
-  output_subdir: null  
-  run:  
+defaults:
+  - _self_
+  - override hydra/hydra_logging: disabled
+  - override hydra/job_logging: disabled
+hydra:
+  output_subdir: null
+  run:
     dir: .
 config_filename: "configs/model.ini"
 data_dir: null
@@ -19,3 +19,4 @@ labels_filename: null
 dst_filename: null
 gpu_idx: 0
 output_subdir: null
+device: null
