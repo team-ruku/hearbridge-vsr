@@ -25,7 +25,9 @@ conda install -c conda-forge ffmpeg
 
 4. Download and extract a pre-trained model and language model from [download](https://bucket.2w.vc/public/hearbridge-vsr-models.zip) to:
 
-- `./models/vision/`
+- `./models/video/`
+
+- `./models/audiovisual/`
 
 - `./models/language/`
 
@@ -39,8 +41,14 @@ python3 . data_filename=[data_filename]
 
 By default, HearBridge AVSR Module automatically matches torch device.
 
-To override this, add `device=` option.
+To override this, add `device` option.
 
 ```Shell
 python3 . data_filename=[data_filename] device=cpu
+```
+
+To override model, use `model` option.
+
+```Shell
+python3 . data_filename=[data_filename] model=video device=cpu
 ```
