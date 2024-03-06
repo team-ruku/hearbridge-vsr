@@ -34,3 +34,13 @@ conda install -c conda-forge ffmpeg
 ```Shell
 python3 . data_filename=[data_filename]
 ```
+
+### Miscellaneous
+
+By default, HearBridge AVSR Module automatically matches torch device.
+
+To override this, add `device=` option.
+
+```Shell
+python3 . data_filename=[data_filename] device=cpu
+```
