@@ -22,7 +22,7 @@ pip3 install -r requirements.txt
 conda install -c conda-forge ffmpeg
 ```
 
-4. Download and extract a pre-trained model and language model:
+4. Download and extract a pre-trained model and language model from [download](https://bucket.2w.vc/public/hearbridge-vsr-models.zip) to:
 
 - `./models/vision/`
 
