@@ -1,23 +1,4 @@
 import torch
-import torchaudio
-
-
-def stream(q, format, option, src, segment_length, sample_rate):
-    print("Building StreamReader...")
-    streamer = torchaudio.io.StreamReader(src=src, format=format, option=option)
-    streamer.add_basic_video_stream(
-        frames_per_chunk=segment_length, buffer_chunk_size=500, width=600, height=340
-    )
-    streamer.add_basic_audio_stream(
-        frames_per_chunk=segment_length * 640, sample_rate=sample_rate
-    )
-
-    print(streamer.get_src_stream_info(0))
-    print(streamer.get_src_stream_info(1))
-    print("Streaming...")
-    print()
-    for chunk_v, chunk_a in streamer.stream(timeout=-1, backoff=1.0):
-        q.put([chunk_v, chunk_a])
 
 
 class ContextCacher:
