@@ -3,6 +3,8 @@ import json
 import os
 
 import torch
+import pathlib
+
 
 from espnet.asr.asr_utils import add_results_to_json, get_model_conf, torch_load
 from espnet.nets.batch_beam_search import BatchBeamSearch
@@ -42,7 +44,9 @@ class AVSR(torch.nn.Module):
             self.token_list = self.train_args.char_list
         elif labels_type == "unigram5000":
             file_path = os.path.join(
-                os.path.dirname(__file__), "token", "unigram5000_units.txt"
+                os.path.dirname(pathlib.Path(__file__).parent.absolute()),
+                "token",
+                "unigram5000_units.txt",
             )
             self.token_list = (
                 ["<blank>"]
