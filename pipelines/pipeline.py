@@ -7,32 +7,8 @@ import torch
 
 from pipelines.data import AVSRDataLoader
 from pipelines.detector import LandmarksDetector
-from pipelines.model import AVSR
-
-
-class SentencePieceTokenProcessor:
-    def __init__(self, sp_model):
-        self.sp_model = sp_model
-        self.post_process_remove_list = {
-            self.sp_model.unk_id(),
-            self.sp_model.eos_id(),
-            self.sp_model.pad_id(),
-        }
-
-    def __call__(self, tokens, lstrip: bool = True) -> str:
-        filtered_hypo_tokens = [
-            token_index
-            for token_index in tokens[1:]
-            if token_index not in self.post_process_remove_list
-        ]
-        output_string = "".join(
-            self.sp_model.id_to_piece(filtered_hypo_tokens)
-        ).replace("\u2581", " ")
-
-        if lstrip:
-            return output_string.lstrip()
-        else:
-            return output_string
+from pipelines.model import AVSR, RealtimeAVSR
+from pipelines.token import SentencePieceTokenProcessor
 
 
 class InferencePipeline(torch.nn.Module):
@@ -81,21 +57,12 @@ class InferencePipeline(torch.nn.Module):
 
         self.landmarks_detector = LandmarksDetector()
 
-    def process_landmarks(self, data_filename, landmarks_filename):
+    def __process_landmarks(self, data_filename, landmarks_filename):
         if isinstance(landmarks_filename, str):
             landmarks = pickle.load(open(landmarks_filename, "rb"))
         else:
             landmarks = self.landmarks_detector(data_filename)
         return landmarks
-
-    def forward(self, data_filename, landmarks_filename=None):
-        assert os.path.isfile(
-            data_filename
-        ), f"data_filename: {data_filename} does not exist."
-        landmarks = self.process_landmarks(data_filename, landmarks_filename)
-        data = self.dataloader.load_data(data_filename, landmarks)
-        transcript = self.model.infer(data)
-        return transcript
 
     def __device_automatch(self, override: str = "") -> str:
         if override:
@@ -107,3 +74,12 @@ class InferencePipeline(torch.nn.Module):
             return "mps"
 
         return "cpu"
+
+    def forward(self, data_filename, landmarks_filename=None):
+        assert os.path.isfile(
+            data_filename
+        ), f"data_filename: {data_filename} does not exist."
+        landmarks = self.__process_landmarks(data_filename, landmarks_filename)
+        data = self.dataloader.load_data(data_filename, landmarks)
+        transcript = self.model.infer(data)
+        return transcript
