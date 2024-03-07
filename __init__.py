@@ -1,4 +1,5 @@
 import hydra
+
 from pipelines import InferencePipeline
 
 

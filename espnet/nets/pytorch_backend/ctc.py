@@ -1,5 +1,5 @@
-from distutils.version import LooseVersion
 import logging
+from distutils.version import LooseVersion
 
 import numpy as np
 import six

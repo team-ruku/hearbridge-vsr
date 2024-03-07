@@ -6,7 +6,9 @@
 
 import torch
 import torch.nn as nn
-from espnet.nets.pytorch_backend.backbones.modules.resnet import ResNet, BasicBlock
+
+from espnet.nets.pytorch_backend.backbones.modules.resnet import (BasicBlock,
+                                                                  ResNet)
 from espnet.nets.pytorch_backend.transformer.convolution import Swish
 
 

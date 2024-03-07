@@ -1,11 +1,11 @@
-import os
-import json
-import torch
 import argparse
+import json
+import os
 
-from espnet.asr.asr_utils import torch_load
-from espnet.asr.asr_utils import get_model_conf
-from espnet.asr.asr_utils import add_results_to_json
+import torch
+
+from espnet.asr.asr_utils import (add_results_to_json, get_model_conf,
+                                  torch_load)
 from espnet.nets.batch_beam_search import BatchBeamSearch
 from espnet.nets.lm_interface import dynamic_import_lm
 from espnet.nets.scorers.length_bonus import LengthBonus

@@ -1,8 +1,9 @@
-import torch
 import logging
 
-from espnet.nets.pytorch_backend.backbones.conv3d_extractor import Conv3dResNet
+import torch
+
 from espnet.nets.pytorch_backend.backbones.conv1d_extractor import Conv1dResNet
+from espnet.nets.pytorch_backend.backbones.conv3d_extractor import Conv3dResNet
 
 
 class VideoEmbedding(torch.nn.Module):

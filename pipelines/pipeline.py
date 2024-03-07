@@ -1,53 +1,82 @@
 import os
-import torch
 import pickle
 from configparser import ConfigParser
 
-from pipelines.model import AVSR
+import sentencepiece as spm
+import torch
+
 from pipelines.data import AVSRDataLoader
 from pipelines.detector import LandmarksDetector
+from pipelines.model import AVSR
+
+
+class SentencePieceTokenProcessor:
+    def __init__(self, sp_model):
+        self.sp_model = sp_model
+        self.post_process_remove_list = {
+            self.sp_model.unk_id(),
+            self.sp_model.eos_id(),
+            self.sp_model.pad_id(),
+        }
+
+    def __call__(self, tokens, lstrip: bool = True) -> str:
+        filtered_hypo_tokens = [
+            token_index
+            for token_index in tokens[1:]
+            if token_index not in self.post_process_remove_list
+        ]
+        output_string = "".join(
+            self.sp_model.id_to_piece(filtered_hypo_tokens)
+        ).replace("\u2581", " ")
+
+        if lstrip:
+            return output_string.lstrip()
+        else:
+            return output_string
 
 
 class InferencePipeline(torch.nn.Module):
     def __init__(self, config_filename, device_override=""):
         super(InferencePipeline, self).__init__()
 
-        config = ConfigParser()
-        config.read(f"./configs/{config_filename}.ini")
+        self.config = ConfigParser()
+        self.config.read(f"./configs/{config_filename}.ini")
 
-        modality = config.get("input", "modality")
+        self.modality = self.config.get("input", "modality")
 
         # data configuration
-        input_v_fps = config.getfloat("input", "v_fps")
-        model_v_fps = config.getfloat("model", "v_fps")
+        self.input_v_fps = self.config.getfloat("input", "v_fps")
+        self.model_v_fps = self.config.getfloat("model", "v_fps")
 
         # model configuration
-        model_path = config.get("model", "model_path")
-        model_conf = config.get("model", "model_conf")
+        self.model_path = self.config.get("model", "model_path")
+        self.model_conf = self.config.get("model", "model_conf")
 
         # language model configuration
-        rnnlm = config.get("model", "rnnlm")
-        rnnlm_conf = config.get("model", "rnnlm_conf")
-        penalty = config.getfloat("decode", "penalty")
-        ctc_weight = config.getfloat("decode", "ctc_weight")
-        lm_weight = config.getfloat("decode", "lm_weight")
-        beam_size = config.getint("decode", "beam_size")
+        self.rnnlm = self.config.get("model", "rnnlm")
+        self.rnnlm_conf = self.config.get("model", "rnnlm_conf")
+        self.penalty = self.config.getfloat("decode", "penalty")
+        self.ctc_weight = self.config.getfloat("decode", "ctc_weight")
+        self.lm_weight = self.config.getfloat("decode", "lm_weight")
+        self.beam_size = self.config.getint("decode", "beam_size")
 
-        device = torch.device(self.__device_automatch(device_override))
+        self.device = torch.device(self.__device_automatch(device_override))
 
-        self.dataloader = AVSRDataLoader(modality, speed_rate=input_v_fps / model_v_fps)
+        self.dataloader = AVSRDataLoader(
+            self.modality, speed_rate=self.input_v_fps / self.model_v_fps
+        )
 
         self.model = AVSR(
-            modality,
-            model_path,
-            model_conf,
-            rnnlm,
-            rnnlm_conf,
-            penalty,
-            ctc_weight,
-            lm_weight,
-            beam_size,
-            device,
+            self.modality,
+            self.model_path,
+            self.model_conf,
+            self.rnnlm,
+            self.rnnlm_conf,
+            self.penalty,
+            self.ctc_weight,
+            self.lm_weight,
+            self.beam_size,
+            self.device,
         )
 
         self.landmarks_detector = LandmarksDetector()

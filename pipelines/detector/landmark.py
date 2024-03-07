@@ -1,6 +1,6 @@
-import torchvision
 import mediapipe as mp
 import numpy as np
+import torchvision
 
 
 class LandmarksDetector:
