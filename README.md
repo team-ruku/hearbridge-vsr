@@ -1,4 +1,4 @@
-# HearBridge VSR
+# HearBridge AVSR
 
 ## Getting Started
 
@@ -12,15 +12,13 @@ cd hearbridge-vsr
 2. Setup the environment.
 
 ```Shell
-conda create -y -n hearbridge-vsr python=3.8
-conda activate hearbridge-vsr
+conda env create -y --file environment.yml
 ```
 
 3. Install pytorch, torchvision, and torchaudio by following instructions [here](https://pytorch.org/get-started/), and install all packages:
 
 ```Shell
-pip3 install -r requirements.txt
-conda install -c conda-forge ffmpeg
+python3 -m pip install -r requirements.txt
 ```
 
 4. Download and extract a pre-trained model and language model from [download](https://bucket.2w.vc/public/hearbridge-vsr-models.zip) to:
@@ -37,6 +35,12 @@ conda install -c conda-forge ffmpeg
 python3 . data_filename=[data_filename]
 ```
 
+For running in real-time mode, use this command. (AVFoundation is Mac Built-In Camera format)
+
+```shell
+python3 . model=realtime data_filename=avfoundation
+```
+
 ### Miscellaneous
 
 By default, HearBridge AVSR Module automatically matches torch device.
@@ -50,5 +54,5 @@ python3 . data_filename=[data_filename] device=cpu
 To override model, use `model` option.
 
 ```Shell
-python3 . data_filename=[data_filename] model=video device=cpu
+python3 . model=video data_filename=[data_filename] device=cpu
 ```

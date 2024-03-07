@@ -14,8 +14,9 @@ from espnet.asr import asr_utils
 
 def _plot_and_save_attention(att_w, filename, xtokens=None, ytokens=None):
     # dynamically import matplotlib due to not found error
-    from matplotlib.ticker import MaxNLocator
     import os
+
+    from matplotlib.ticker import MaxNLocator
 
     d = os.path.dirname(filename)
     if not os.path.exists(d):

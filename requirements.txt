@@ -5,3 +5,4 @@ scikit-image >= 0.13.0
 av >= 10.0.0
 six >= 1.16.0 
 mediapipe
+sentencepiece
