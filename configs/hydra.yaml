@@ -20,3 +20,4 @@ gpu_idx: 0
 output_subdir: null
 device: null
 model: "audiovisual"
+capture: "avfoundation"
