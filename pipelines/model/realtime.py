@@ -1,5 +1,8 @@
-import torch
 import sentencepiece as spm
+import torch
+import torch.multiprocessing as mp
+import torchaudio
+
 from pipelines.token import SentencePieceTokenProcessor
 
 
@@ -30,3 +33,7 @@ class RealtimeAVSR(torch.nn.Module):
         self.sample_rate = sample_rate
         self.frame_rate = frame_rate
         self.rate_ratio = self.sample_rate // self.frame_rate
+
+        self.decoder = torchaudio.models.RNNTBeamSearch(
+            self.model.model, self.sp_model.get_piece_size()
+        )
