@@ -35,6 +35,12 @@ python3 -m pip install -r requirements.txt
 python3 . data_filename=[data_filename]
 ```
 
+For running in real-time mode, use this command. (AVFoundation is Mac Built-In Camera format)
+
+```shell
+python3 . model=realtime data_filename=avfoundation
+```
+
 ### Miscellaneous
 
 By default, HearBridge AVSR Module automatically matches torch device.
@@ -48,5 +54,5 @@ python3 . data_filename=[data_filename] device=cpu
 To override model, use `model` option.
 
 ```Shell
-python3 . data_filename=[data_filename] model=video device=cpu
+python3 . model=video data_filename=[data_filename] device=cpu
 ```
