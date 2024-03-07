@@ -42,7 +42,7 @@ class AVSR(torch.nn.Module):
             self.token_list = self.train_args.char_list
         elif labels_type == "unigram5000":
             file_path = os.path.join(
-                os.path.dirname(__file__), "tokens", "unigram5000_units.txt"
+                os.path.dirname(__file__), "token", "unigram5000_units.txt"
             )
             self.token_list = (
                 ["<blank>"]
