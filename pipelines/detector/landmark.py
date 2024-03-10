@@ -18,6 +18,8 @@ class LandmarksDetector:
         self.face_detector_options = mp.tasks.vision.FaceDetectorOptions
         self.running_mode = mp.tasks.vision.RunningMode
 
+        self.options = self.face_detector_options()
+
     def __call__(self, filename):
         video_frames = torchvision.io.read_video(filename, pts_unit="sec")[0].numpy()
         landmarks = self.detect(video_frames, self.full_range_detector)
