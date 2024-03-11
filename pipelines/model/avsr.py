@@ -1,10 +1,9 @@
 import argparse
 import json
 import os
-
-import torch
 import pathlib
 
+import torch
 
 from espnet.asr.asr_utils import add_results_to_json, get_model_conf, torch_load
 from espnet.nets.batch_beam_search import BatchBeamSearch

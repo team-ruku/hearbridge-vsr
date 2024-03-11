@@ -3,9 +3,9 @@ import torch
 import torch.multiprocessing as mp
 import torchaudio
 
-from pipelines.token import SentencePieceTokenProcessor
-from pipelines.preprocess import Preprocessing
 from pipelines.data import ContextCacher
+from pipelines.preprocess import Preprocessing
+from pipelines.token import SentencePieceTokenProcessor
 
 ctx = mp.get_context("spawn")
 
