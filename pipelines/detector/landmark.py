@@ -52,7 +52,6 @@ class LandmarksDetector:
                         max_id, max_size = idx, bbox_size
 
                     keypoints = detected_faces.keypoints
-
                     lmx = [
                         [
                             int(keypoints[0].x * frame.shape[0]),
@@ -71,6 +70,7 @@ class LandmarksDetector:
                             int(keypoints[3].y * frame.shape[1]),
                         ],
                     ]
+
                     face_points.append(lmx)
                 landmarks.append(np.array(face_points[max_id]))
             return landmarks
