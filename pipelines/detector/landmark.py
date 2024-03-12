@@ -25,9 +25,7 @@ class LandmarksDetector:
 
     def __call__(self, filename):
         video_frames = torchvision.io.read_video(filename, pts_unit="sec")[0].numpy()
-        return self.detect(video_frames)
 
-    def detect(self, video_frames):
         with self.face_detector.create_from_options(self.options) as detector:
             landmarks = []
             for frame in video_frames:
