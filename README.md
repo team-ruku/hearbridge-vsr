@@ -2,6 +2,35 @@
 
 > Conversation Textualization via Lip-reading
 
+## Prerequisites
+
+1. Setup the conda environment.
+
+```bash
+conda create -y -n hearbridge python=3.8
+conda activate hearbridge
+```
+
+2. Install requirements.
+
+```bash
+python3 -m pip install -r requirements.txt
+conda install -c conda-forge ffmpeg
+```
+
+3. Download & Extract pre-trained models to:
+
+- `models/visual/model.pth`
+- `models/spm`
+
+## Run
+
+```bash
+python3 demo.py filename=[video file]
+```
+
+In the real-time case, you should write `avfoundation` or camera index number on the `filename`.
+
 ## Reference
 
 ```bibtex
