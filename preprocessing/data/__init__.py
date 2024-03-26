@@ -1,5 +1,1 @@
-from .transforms import (
-    FunctionalModule,
-    TextTransform,
-    VideoTransform,
-)
+from .transforms import FunctionalModule, TextTransform, VideoTransform

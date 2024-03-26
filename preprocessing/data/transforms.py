@@ -12,7 +12,6 @@ import sentencepiece
 import torch
 import torchvision
 
-
 SP_MODEL_PATH = os.path.join(
     os.path.dirname(os.path.dirname(pathlib.Path(__file__).parent.absolute())),
     "models",

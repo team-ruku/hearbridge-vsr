@@ -1,5 +1,5 @@
-from retinaface import RetinaFace
 import numpy as np
+from retinaface import RetinaFace
 
 
 class LandmarksDetector:
