@@ -7,8 +7,7 @@
 import torch
 import torch.nn as nn
 
-from espnet.nets.pytorch_backend.backbones.modules.resnet import (BasicBlock,
-                                                                  ResNet)
+from espnet.nets.pytorch_backend.backbones.modules.resnet import BasicBlock, ResNet
 from espnet.nets.pytorch_backend.transformer.convolution import Swish
 
 
@@ -40,6 +39,8 @@ class Conv3dResNet(torch.nn.Module):
         )
 
     def forward(self, xs_pad):
+        xs_pad = xs_pad.transpose(1, 2)  # [B, T, C, H, W] -> [B, C, T, H, W]
+
         B, C, T, H, W = xs_pad.size()
         xs_pad = self.frontend3D(xs_pad)
         Tnew = xs_pad.shape[2]
