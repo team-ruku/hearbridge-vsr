@@ -8,6 +8,8 @@ from espnet.nets.scorers.length_bonus import LengthBonus
 
 from .data import TextTransform
 
+from loguru import logger
+
 
 class ModelModule(LightningModule):
     def __init__(self, cfg):
@@ -42,6 +44,7 @@ class ModelModule(LightningModule):
         else:
             self.model.load_state_dict(ckpt)
 
+    @logger.catch
     def forward(self, sample):
         self.beam_search = get_beam_search_decoder(self.model, self.token_list)
         enc_feat, _ = self.model.encoder(sample.unsqueeze(0).to(self.device), None)

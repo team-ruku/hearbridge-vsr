@@ -8,17 +8,26 @@ from preprocessing import ModelModule
 from preprocessing.data import VideoTransform
 from preprocessing.detector import LandmarksDetector, VideoProcess
 
+from loguru import logger
+
 
 class InferencePipeline(torch.nn.Module):
+    @logger.debug
     def __init__(self, cfg):
         super(InferencePipeline, self).__init__()
+        logger.debug("[Phase 1] Preprocessing")
 
+        logger.debug("creating LandmarkDetector, VideoProcess")
         self.landmarks_detector = LandmarksDetector()
         self.video_process = VideoProcess(convert_gray=False)
 
+        logger.debug("transforming video")
         self.video_transform = VideoTransform(subset="test")
 
+        logger.debug("creating model module")
         self.modelmodule = ModelModule(cfg)
+
+        logger.debug("loading model file")
         self.modelmodule.model.load_state_dict(
             torch.load(
                 "models/visual/model.pth",
@@ -27,6 +36,8 @@ class InferencePipeline(torch.nn.Module):
         )
         self.modelmodule.eval()
 
+    @logger.debug
+    @logger.catch
     def forward(self, filename):
         filename = os.path.abspath(filename)
         assert os.path.isfile(filename), f"filename: {filename} does not exist."
@@ -38,6 +49,7 @@ class InferencePipeline(torch.nn.Module):
 
         return transcript
 
+    @logger.debug
     def load_video(self, filename):
         video = torchvision.io.read_video(filename, pts_unit="sec")[0].numpy()
         landmarks = self.landmarks_detector(video)
@@ -50,6 +62,7 @@ class InferencePipeline(torch.nn.Module):
 
 @hydra.main(version_base="1.3", config_path="configs", config_name="hydra")
 def main(cfg):
+    logger.info("Initializing")
     pipeline = InferencePipeline(cfg)
     transcript = pipeline(cfg.filename)
     print(f"transcript: {transcript}")

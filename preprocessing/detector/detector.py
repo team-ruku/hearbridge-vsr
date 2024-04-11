@@ -1,12 +1,16 @@
 import numpy as np
 from retinaface import RetinaFace
 
+from loguru import logger
+
 
 class LandmarksDetector:
     def __init__(self) -> None:
         self.detector = RetinaFace.detect_faces
 
+    @logger.debug
     def __call__(self, video_frames):
+        logger.debug("[Phase 1-1] Landmark Detection")
         total_landmarks = []
 
         for frame in video_frames:
