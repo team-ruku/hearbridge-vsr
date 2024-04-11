@@ -10,7 +10,7 @@ class LandmarksDetector:
         total_landmarks = []
 
         for frame in video_frames:
-            detected_faces = self.detector(frame, threshold=0.8)
+            detected_faces = self.detector(frame, threshold=0.8)  # 감지하자
             max_id, max_size = (
                 0,
                 0,
@@ -25,11 +25,11 @@ class LandmarksDetector:
 
                 bbox_size = (current_bbox[2] - current_bbox[0]) + (
                     current_bbox[3] - current_bbox[1]
-                )
-                if bbox_size > max_size:
+                )  # Bounding Box 사이즈 계산
+                if bbox_size > max_size:  # 최대치만 쏙쏙 골라뺴기
                     max_id, max_size = idx, bbox_size
 
-                face_points.append(
+                face_points.append(  # 계산
                     [
                         current_landmarks["right_eye"],
                         current_landmarks["left_eye"],
