@@ -12,7 +12,6 @@ from loguru import logger
 
 
 class InferencePipeline(torch.nn.Module):
-    @logger.debug
     def __init__(self, cfg):
         super(InferencePipeline, self).__init__()
         logger.debug("[Phase 1] Preprocessing")
@@ -36,7 +35,6 @@ class InferencePipeline(torch.nn.Module):
         )
         self.modelmodule.eval()
 
-    @logger.debug
     @logger.catch
     def forward(self, filename):
         filename = os.path.abspath(filename)
@@ -49,7 +47,6 @@ class InferencePipeline(torch.nn.Module):
 
         return transcript
 
-    @logger.debug
     def load_video(self, filename):
         video = torchvision.io.read_video(filename, pts_unit="sec")[0].numpy()
         landmarks = self.landmarks_detector(video)
