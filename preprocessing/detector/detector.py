@@ -24,6 +24,7 @@ class LandmarksDetector:
             new_array = [value for key, value in detected_faces.items()]
 
             for idx, result in enumerate(new_array):
+                logger.debug(f"Landmark Detected for Index {idx}: {result}")
                 current_bbox = result["facial_area"]
                 current_landmarks = result["landmarks"]
 
