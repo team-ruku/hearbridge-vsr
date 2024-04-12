@@ -15,7 +15,7 @@ from loguru import logger
 class InferencePipeline(torch.nn.Module):
     def __init__(self, cfg):
         super(InferencePipeline, self).__init__()
-        logger.debug("[Phase 1] Preprocessing")
+        logger.debug("[Phase 0] Initializing")
 
         logger.debug("creating LandmarkDetector, VideoProcess")
         self.landmarks_detector = LandmarksDetector()
@@ -34,6 +34,8 @@ class InferencePipeline(torch.nn.Module):
                 map_location=lambda storage, loc: storage,
             )
         )
+
+        logger.debug("setting model to evaluation mode")
         self.modelmodule.eval()
 
     @logger.catch
@@ -60,7 +62,6 @@ class InferencePipeline(torch.nn.Module):
 
 @hydra.main(version_base="1.3", config_path="configs", config_name="hydra")
 def main(cfg):
-    logger.info("Initializing")
     pipeline = InferencePipeline(cfg)
     transcript = pipeline(cfg.filename)
     print(f"transcript: {transcript}")
