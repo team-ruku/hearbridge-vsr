@@ -4,12 +4,11 @@ import sys
 import hydra
 import torch
 import torchvision
+from loguru import logger
 
 from preprocessing import ModelModule
 from preprocessing.data import VideoTransform
 from preprocessing.detector import LandmarksDetector, VideoProcess
-
-from loguru import logger
 
 
 class InferencePipeline(torch.nn.Module):

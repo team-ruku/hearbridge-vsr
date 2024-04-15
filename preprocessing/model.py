@@ -1,4 +1,5 @@
 import torch
+from loguru import logger
 from pytorch_lightning import LightningModule
 
 from espnet.nets.batch_beam_search import BatchBeamSearch
@@ -7,8 +8,6 @@ from espnet.nets.scorers.ctc import CTCPrefixScorer
 from espnet.nets.scorers.length_bonus import LengthBonus
 
 from .data import TextTransform
-
-from loguru import logger
 
 
 class ModelModule(LightningModule):

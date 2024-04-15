@@ -1,7 +1,6 @@
 import numpy as np
-from retinaface import RetinaFace
-
 from loguru import logger
+from retinaface import RetinaFace
 
 
 class LandmarksDetector:
