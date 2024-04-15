@@ -15,7 +15,7 @@ from loguru import logger
 class InferencePipeline(torch.nn.Module):
     def __init__(self, cfg):
         super(InferencePipeline, self).__init__()
-        logger.debug("[Phase 0] Initializing")
+        logger.info("[Phase 0] Initializing")
 
         logger.debug("creating LandmarkDetector, VideoProcess")
         self.landmarks_detector = LandmarksDetector()
@@ -40,6 +40,7 @@ class InferencePipeline(torch.nn.Module):
 
     @logger.catch
     def forward(self, filename):
+        logger.info("[Phase 1] Starting Inference")
         filename = os.path.abspath(filename)
         assert os.path.isfile(filename), f"filename: {filename} does not exist."
 
@@ -50,7 +51,9 @@ class InferencePipeline(torch.nn.Module):
 
         return transcript
 
+    @logger.catch
     def load_video(self, filename):
+        logger.info("[Phase 1-1] Preprocess Video")
         video = torchvision.io.read_video(filename, pts_unit="sec")[0].numpy()
         landmarks = self.landmarks_detector(video)
         video = self.video_process(video, landmarks)

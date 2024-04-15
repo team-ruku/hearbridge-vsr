@@ -14,6 +14,7 @@ from loguru import logger
 class ModelModule(LightningModule):
     def __init__(self, cfg):
         super().__init__()
+        logger.info("[Phase 0-1] Initializing model")
         self.save_hyperparameters(cfg)
         self.cfg = cfg
         self.backbone_args = self.cfg.model
@@ -21,28 +22,6 @@ class ModelModule(LightningModule):
         self.text_transform = TextTransform()
         self.token_list = self.text_transform.token_list
         self.model = E2E(len(self.token_list), self.backbone_args)
-
-        # -- initialise
-        ckpt = torch.load(
-            "models/visual/model.pth",
-            map_location=lambda storage, loc: storage,
-        )
-        if self.cfg.transfer_frontend:
-            tmp_ckpt = {
-                k: v
-                for k, v in ckpt["model_state_dict"].items()
-                if k.startswith("trunk.") or k.startswith("frontend3D.")
-            }
-            self.model.encoder.frontend.load_state_dict(tmp_ckpt)
-        elif self.cfg.transfer_encoder:
-            tmp_ckpt = {
-                k.replace("encoder.", ""): v
-                for k, v in ckpt.items()
-                if k.startswith("encoder.")
-            }
-            self.model.encoder.load_state_dict(tmp_ckpt, strict=True)
-        else:
-            self.model.load_state_dict(ckpt)
 
     @logger.catch
     def forward(self, sample):

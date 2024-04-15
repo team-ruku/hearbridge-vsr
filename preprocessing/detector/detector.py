@@ -10,7 +10,7 @@ class LandmarksDetector:
 
     @logger.catch()
     def __call__(self, video_frames):
-        logger.debug("[Phase 1-1] Landmark Detection")
+        logger.info("[Phase 1-2] Landmark Detection")
         total_landmarks = []
 
         for frame in video_frames:

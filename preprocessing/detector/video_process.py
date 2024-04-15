@@ -8,7 +8,6 @@ import os
 
 import cv2
 import numpy as np
-from skimage import transform as tf
 
 from loguru import logger
 
@@ -22,19 +21,6 @@ def linear_interpolate(landmarks, start_idx, stop_idx):
             start_landmarks + idx / float(stop_idx - start_idx) * delta
         )
     return landmarks
-
-
-def warp_img(src, dst, img, std_size):
-    tform = tf.estimate_transform("similarity", src, dst)
-    warped = tf.warp(img, inverse_map=tform.inverse, output_shape=std_size)
-    warped = (warped * 255).astype("uint8")
-    return warped, tform
-
-
-def apply_transform(transform, img, std_size):
-    warped = tf.warp(img, inverse_map=transform.inverse, output_shape=std_size)
-    warped = (warped * 255).astype("uint8")
-    return warped
 
 
 def cut_patch(img, landmarks, height, width, threshold=5):
@@ -76,7 +62,7 @@ class VideoProcess:
         self.convert_gray = convert_gray
 
     def __call__(self, video, landmarks):
-        # Pre-process landmarks: interpolate frames that are not detected
+        logger.info("[Phase 1-3] Transform Video")
         preprocessed_landmarks = self.interpolate_landmarks(landmarks)
         # Exclude corner cases: no landmark in all frames
         if not preprocessed_landmarks:
