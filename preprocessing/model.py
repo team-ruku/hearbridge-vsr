@@ -24,8 +24,10 @@ class ModelModule(LightningModule):
 
     @logger.catch
     def forward(self, sample):
+        logger.info("[Phase 2-1] Getting Beam Search Decoder")
         self.beam_search = get_beam_search_decoder(self.model, self.token_list)
         enc_feat, _ = self.model.encoder(sample.unsqueeze(0).to(self.device), None)
+        logger.debug("encoding features")
         enc_feat = enc_feat.squeeze(0)
 
         nbest_hyps = self.beam_search(enc_feat)
@@ -52,6 +54,7 @@ def get_beam_search_decoder(model, token_list, ctc_weight=0.1, beam_size=40):
         "length_bonus": 0.0,
     }
 
+    logger.debug("returning BatchBeamSearch")
     return BatchBeamSearch(
         beam_size=beam_size,
         vocab_size=len(token_list),

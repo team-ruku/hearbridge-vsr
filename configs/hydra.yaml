@@ -16,4 +16,4 @@ ckpt_path:
 pretrained_model_path:
 transfer_frontend:
 transfer_encoder:
-enable_legacy: disabled
+enable_legacy: false

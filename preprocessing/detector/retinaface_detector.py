@@ -3,7 +3,7 @@ from loguru import logger
 from retinaface import RetinaFace
 
 
-class LandmarksDetector:
+class LandmarksDetectorRetinaFace:
     def __init__(self) -> None:
         self.detector = RetinaFace.detect_faces
 

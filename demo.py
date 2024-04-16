@@ -6,9 +6,7 @@ import torch
 import torchvision
 from loguru import logger
 
-from preprocessing import ModelModule
-from preprocessing.data import VideoTransform
-from preprocessing.detector import LandmarksDetector, VideoProcess
+from preprocessing import ModelModule, VideoTransform, VideoProcess
 
 
 class InferencePipeline(torch.nn.Module):
@@ -18,13 +16,16 @@ class InferencePipeline(torch.nn.Module):
 
         logger.debug("creating LandmarkDetector, VideoProcess")
 
-        ##if cfg.enable_legacy:
-        ##    logger.debug("legacy option enabled, loading mediapipe")
-        ##    from preprocessing import LandmarksDetectorMediaPipe
+        if cfg.enable_legacy:
+            logger.debug("legacy option enabled, loading mediapipe")
+            from preprocessing.detector import LandmarksDetectorMediaPipe
 
-        ##    self.landmarks_detector = LandmarksDetectorMediaPipe()
-        ##else:
-        self.landmarks_detector = LandmarksDetector()
+            self.landmarks_detector = LandmarksDetectorMediaPipe()
+        else:
+            logger.debug("no legacy option, loading retinaface")
+            from preprocessing.detector import LandmarksDetectorRetinaFace
+
+            self.landmarks_detector = LandmarksDetectorRetinaFace()
 
         self.video_process = VideoProcess(convert_gray=False)
 
@@ -47,12 +48,13 @@ class InferencePipeline(torch.nn.Module):
 
     @logger.catch
     def forward(self, filename):
-        logger.info("[Phase 1] Starting Inference")
+        logger.info("Starting Inference")
         filename = os.path.abspath(filename)
         assert os.path.isfile(filename), f"filename: {filename} does not exist."
 
         video = self.load_video(filename)
 
+        logger.info("[Phase 2] Getting transcript")
         with torch.no_grad():
             transcript = self.modelmodule(video)
 
@@ -75,6 +77,7 @@ class InferencePipeline(torch.nn.Module):
 
 @hydra.main(version_base="1.3", config_path="configs", config_name="hydra")
 def main(cfg):
+    logger.debug(f"CFG: {cfg}")
     pipeline = InferencePipeline(cfg)
     transcript = pipeline(cfg.filename)
     print(f"transcript: {transcript}")

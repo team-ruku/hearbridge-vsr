@@ -26,9 +26,8 @@ class LandmarksDetectorMediaPipe:
         )
 
     @logger.catch
-    def __call__(self, filename):
+    def __call__(self, video_frames):
         logger.info("[Phase 1-2] Landmark Detection")
-        video_frames = torchvision.io.read_video(filename, pts_unit="sec")[0].numpy()
 
         with self.face_detector.create_from_options(self.options) as detector:
             landmarks = []
