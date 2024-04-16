@@ -61,9 +61,11 @@ class InferencePipeline(torch.nn.Module):
     @logger.catch
     def load_video(self, filename):
         logger.info("[Phase 1-1] Preprocess Video")
-        logger.debug("reading video using torchvision...")
+        logger.debug(f"reading video using torchvision, filename: {filename}")
         video = torchvision.io.read_video(filename, pts_unit="sec")[0].numpy()
+
         landmarks = self.landmarks_detector(video)
+
         video = self.video_process(video, landmarks)
         video = torch.tensor(video)
         video = video.permute((0, 3, 1, 2))
