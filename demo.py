@@ -17,7 +17,15 @@ class InferencePipeline(torch.nn.Module):
         logger.info("[Phase 0] Initializing")
 
         logger.debug("creating LandmarkDetector, VideoProcess")
-        self.landmarks_detector = LandmarksDetector()
+
+        if cfg.enable_legacy:
+            logger.debug("legacy option enabled, loading mediapipe")
+            from preprocessing import LandmarksDetectorMediaPipe
+
+            self.landmarks_detector = LandmarksDetectorMediaPipe()
+        else:
+            self.landmarks_detector = LandmarksDetector()
+
         self.video_process = VideoProcess(convert_gray=False)
 
         logger.debug("transforming video")
@@ -53,6 +61,7 @@ class InferencePipeline(torch.nn.Module):
     @logger.catch
     def load_video(self, filename):
         logger.info("[Phase 1-1] Preprocess Video")
+        logger.debug("reading video using torchvision...")
         video = torchvision.io.read_video(filename, pts_unit="sec")[0].numpy()
         landmarks = self.landmarks_detector(video)
         video = self.video_process(video, landmarks)

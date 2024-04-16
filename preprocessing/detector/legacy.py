@@ -5,8 +5,10 @@ import mediapipe as mp
 import numpy as np
 import torchvision
 
+from loguru import logger
 
-class LandmarksDetector:
+
+class LandmarksDetectorMediaPipe:
     def __init__(self):
         self.face_detector = mp.tasks.vision.FaceDetector
 
@@ -23,7 +25,9 @@ class LandmarksDetector:
             min_detection_confidence=0.5,
         )
 
+    @logger.catch
     def __call__(self, filename):
+        logger.info("[Phase 1-2] Landmark Detection")
         video_frames = torchvision.io.read_video(filename, pts_unit="sec")[0].numpy()
 
         with self.face_detector.create_from_options(self.options) as detector:
@@ -39,6 +43,7 @@ class LandmarksDetector:
 
                 face_points = []
                 for idx, detected_faces in enumerate(results.detections):
+                    logger.debug(f"Face Detected for Index {idx}: {detected_faces}")
                     max_id, max_size = 0, 0
 
                     bbox = detected_faces.bounding_box

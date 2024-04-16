@@ -31,6 +31,14 @@ python3 demo.py filename=[video file]
 
 In the real-time case, you should write `avfoundation` or camera index number on the `filename`.
 
+### Misc
+
+If you want to use `MediaPipe` instead of `Retinaface`, add `enable_legacy` flag.
+
+```bash
+python3 demo.py filename=[video file] enable_legacy=true
+```
+
 ## Reference
 
 ```bibtex

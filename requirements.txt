@@ -9,3 +9,4 @@ torch==2.2.1
 torchvision==0.17.1
 pytorch-lightning==1.5.10
 loguru
+mediapipe
