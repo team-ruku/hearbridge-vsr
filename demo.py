@@ -18,13 +18,13 @@ class InferencePipeline(torch.nn.Module):
 
         logger.debug("creating LandmarkDetector, VideoProcess")
 
-        if cfg.enable_legacy:
-            logger.debug("legacy option enabled, loading mediapipe")
-            from preprocessing import LandmarksDetectorMediaPipe
+        ##if cfg.enable_legacy:
+        ##    logger.debug("legacy option enabled, loading mediapipe")
+        ##    from preprocessing import LandmarksDetectorMediaPipe
 
-            self.landmarks_detector = LandmarksDetectorMediaPipe()
-        else:
-            self.landmarks_detector = LandmarksDetector()
+        ##    self.landmarks_detector = LandmarksDetectorMediaPipe()
+        ##else:
+        self.landmarks_detector = LandmarksDetector()
 
         self.video_process = VideoProcess(convert_gray=False)
 
