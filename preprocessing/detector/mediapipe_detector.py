@@ -12,7 +12,7 @@ import cv2
 import numpy as np
 
 
-class LandmarksDetector:
+class LandmarksDetectorMediaPipe:
     def __init__(self):
         self.mp_face_detection = mp.solutions.face_detection
         self.short_range_detector = self.mp_face_detection.FaceDetection(
