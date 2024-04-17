@@ -1,2 +1,1 @@
-from .module import DataModule
-from .transforms import VideoTransform
+from .transforms import VideoTransform, TextTransform

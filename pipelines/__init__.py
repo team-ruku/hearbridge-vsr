@@ -1,41 +1,51 @@
 import os
-
 import cv2
+
 import torch
 import torchvision
 from loguru import logger
 
-from .data import *
 from .detectors import *
+from .data import *
 from .model import ModelModule
 
 
 class InferencePipeline(torch.nn.Module):
-    def __init__(self, hydra_cfg, model_cfg):
+    def __init__(self, cfg):
         super(InferencePipeline, self).__init__()
         logger.info("[Phase 0] Initializing")
 
-        self.legacy_enabled = hydra_cfg.enable_legacy
-        self.save_roi = hydra_cfg.save_mouth_roi
-
         logger.debug("creating LandmarkDetector, VideoProcess")
 
-        if self.legacy_enabled:
+        if cfg.enable_legacy:
             logger.debug("legacy option enabled, loading mediapipe")
             self.landmarks_detector = LandmarksDetectorMediaPipe()
         else:
             logger.debug("no legacy option, loading retinaface")
             self.landmarks_detector = LandmarksDetectorRetinaFace()
 
-        self.video_process = VideoProcess(convert_gray=True)
+        self.save_roi = cfg.save_mouth_roi
+
+        self.video_process = VideoProcess(convert_gray=False)
         if self.save_roi:
             self.colorized_video = VideoProcess(convert_gray=False)
 
         logger.debug("transforming video")
-        self.video_transform = VideoTransform(speed_rate=1)
+        self.video_transform = VideoTransform(subset="test")
 
         logger.debug("creating model module")
-        self.modelmodule = ModelModule(model_cfg)
+        self.modelmodule = ModelModule(cfg)
+
+        logger.debug("loading model file")
+        self.modelmodule.model.load_state_dict(
+            torch.load(
+                "models/visual/model.pth",
+                map_location=lambda storage, loc: storage,
+            )
+        )
+
+        logger.debug("setting model to evaluation mode")
+        self.modelmodule.eval()
 
     @logger.catch
     def forward(self, filename):
@@ -44,11 +54,6 @@ class InferencePipeline(torch.nn.Module):
         assert os.path.isfile(filename), f"filename: {filename} does not exist."
 
         video = self.load_video(filename)
-
-        if self.save_roi:
-            logger.info("Mouth ROI capture enabled, saving ROI crop result")
-            fps = cv2.VideoCapture(filename).get(cv2.CAP_PROP_FPS)
-            self.__save_to_video("demos/roi.mp4", video, fps)
 
         logger.info("[Phase 2] Getting transcript")
         with torch.no_grad():
@@ -62,13 +67,17 @@ class InferencePipeline(torch.nn.Module):
         logger.debug(f"reading video using torchvision, filename: {filename}")
         video = torchvision.io.read_video(filename, pts_unit="sec")[0].numpy()
         landmarks = self.landmarks_detector(video)
-        video = torch.tensor(self.video_process(video, landmarks))
+
         if self.save_roi:
+            logger.info("Mouth ROI capture enabled, saving ROI crop result")
+            fps = cv2.VideoCapture(filename).get(cv2.CAP_PROP_FPS)
             self.__save_to_video(
-                "demos/roi.mp4",
+                f"{filename.replace('.mp4','')}_roi.mp4",
                 torch.tensor(self.colorized_video(video, landmarks)),
-                cv2.VideoCapture(filename).get(cv2.CAP_PROP_FPS),
+                fps,
             )
+
+        video = torch.tensor(self.video_process(video, landmarks)).permute((0, 3, 1, 2))
         return self.video_transform(video)
 
     def __save_to_video(self, filename, vid, frames_per_second):
