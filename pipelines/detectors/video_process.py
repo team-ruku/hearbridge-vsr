@@ -80,7 +80,6 @@ class VideoProcess:
             return
         # Affine transformation and crop patch
         sequence = self.crop_patch(video, preprocessed_landmarks)
-        assert sequence is not None, f"cannot crop a patch from {filename}."
         return sequence
 
     def crop_patch(self, video, landmarks):
