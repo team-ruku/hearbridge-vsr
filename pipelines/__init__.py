@@ -31,7 +31,7 @@ class InferencePipeline(torch.nn.Module):
             self.colorized_video = VideoProcess(convert_gray=False)
 
         logger.debug("transforming video")
-        self.video_transform = VideoTransform(subset="test")
+        self.video_transform = VideoTransform()
 
         logger.debug("creating model module")
         self.modelmodule = ModelModule(cfg)
