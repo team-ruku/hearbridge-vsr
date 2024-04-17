@@ -4,10 +4,12 @@
 # Copyright 2021 Imperial College London (Pingchuan Ma)
 # Apache 2.0  (http://www.apache.org/licenses/LICENSE-2.0)
 
+import warnings
+import torchvision
 import mediapipe as mp
+import os
+import cv2
 import numpy as np
-
-from loguru import logger
 
 
 class LandmarksDetectorMediaPipe:
@@ -21,7 +23,6 @@ class LandmarksDetectorMediaPipe:
         )
 
     def __call__(self, video_frames):
-        logger.info("[Phase 1-2] Landmark Detection")
         landmarks = self.detect(video_frames, self.full_range_detector)
         if all(element is None for element in landmarks):
             landmarks = self.detect(video_frames, self.short_range_detector)
@@ -39,7 +40,6 @@ class LandmarksDetectorMediaPipe:
                 continue
             face_points = []
             for idx, detected_faces in enumerate(results.detections):
-                logger.debug(f"Face Detected for Index {idx}: {detected_faces}")
                 max_id, max_size = 0, 0
                 bboxC = detected_faces.location_data.relative_bounding_box
                 ih, iw, ic = frame.shape
@@ -49,7 +49,6 @@ class LandmarksDetectorMediaPipe:
                     int(bboxC.width * iw),
                     int(bboxC.height * ih),
                 )
-                logger.debug(f"Bounding Box for {idx}: {bbox}")
                 bbox_size = (bbox[2] - bbox[0]) + (bbox[3] - bbox[1])
                 if bbox_size > max_size:
                     max_id, max_size = idx, bbox_size

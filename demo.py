@@ -73,7 +73,7 @@ class InferencePipeline(torch.nn.Module):
         logger.debug(f"reading video using torchvision, filename: {filename}")
         video = torchvision.io.read_video(filename, pts_unit="sec")[0].numpy()
         landmarks = self.landmarks_detector(video)
-        video = torch.tensor(self.video_process(video, landmarks)).permute((0, 3, 1, 2))
+        video = torch.tensor(self.video_process(video, landmarks))
         return self.video_transform(video)
 
     def __save_to_video(self, filename, vid, frames_per_second):
