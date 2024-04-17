@@ -14,8 +14,11 @@ class InferencePipeline(torch.nn.Module):
     def __init__(self, cfg):
         super(InferencePipeline, self).__init__()
         logger.info("[Phase 0] Initializing")
-
         logger.debug("creating LandmarkDetector, VideoProcess")
+
+        self.device = cfg.device
+
+        logger.debug(f"Accel device: {self.device}")
 
         if cfg.enable_legacy:
             logger.debug("legacy option enabled, loading mediapipe")
@@ -45,7 +48,7 @@ class InferencePipeline(torch.nn.Module):
         )
 
         logger.debug("setting model to evaluation mode")
-        self.modelmodule.eval()
+        self.modelmodule.to(self.device).eval()
 
     @logger.catch
     def forward(self, filename):
