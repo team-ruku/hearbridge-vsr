@@ -3,7 +3,6 @@ import pathlib
 
 import mediapipe as mp
 import numpy as np
-
 from loguru import logger
 
 

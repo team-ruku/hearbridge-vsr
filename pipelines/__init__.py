@@ -1,12 +1,12 @@
 import os
-import cv2
 
+import cv2
 import torch
 import torchvision
 from loguru import logger
 
-from .detectors import *
 from .data import *
+from .detectors import *
 from .model import ModelModule
 
 

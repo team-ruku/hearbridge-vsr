@@ -1,1 +1,1 @@
-from .transforms import VideoTransform, TextTransform
+from .transforms import TextTransform, VideoTransform

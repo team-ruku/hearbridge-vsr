@@ -1,5 +1,4 @@
 import hydra
-
 from loguru import logger
 
 from pipelines import InferencePipeline
