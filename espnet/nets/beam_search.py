@@ -353,9 +353,9 @@ class BeamSearch(torch.nn.Module):
         else:
             maxlen = max(1, int(maxlenratio * x.size(0)))
         minlen = int(minlenratio * x.size(0))
-        logging.debug("decoder input length: " + str(x.shape[0]))
-        logging.debug("max output length: " + str(maxlen))
-        logging.debug("min output length: " + str(minlen))
+        logging.info("decoder input length: " + str(x.shape[0]))
+        logging.info("max output length: " + str(maxlen))
+        logging.info("min output length: " + str(minlen))
 
         # main loop of prefix search
         running_hyps = self.init_hyp(x)
@@ -367,10 +367,10 @@ class BeamSearch(torch.nn.Module):
             running_hyps = self.post_process(i, maxlen, maxlenratio, best, ended_hyps)
             # end detection
             if maxlenratio == 0.0 and end_detect([h.asdict() for h in ended_hyps], i):
-                logging.debug(f"end detected at {i}")
+                logging.info(f"end detected at {i}")
                 break
             if len(running_hyps) == 0:
-                logging.debug("no hypothesis. Finish decoding.")
+                logging.info("no hypothesis. Finish decoding.")
                 break
             else:
                 logging.debug(f"remained hypotheses: {len(running_hyps)}")
@@ -391,14 +391,14 @@ class BeamSearch(torch.nn.Module):
         # report the best result
         best = nbest_hyps[0]
         for k, v in best.scores.items():
-            logging.debug(
+            logging.info(
                 f"{v:6.2f} * {self.weights[k]:3} = {v * self.weights[k]:6.2f} for {k}"
             )
-        logging.debug(f"total log probability: {best.score:.2f}")
-        logging.debug(f"normalized log probability: {best.score / len(best.yseq):.2f}")
-        logging.debug(f"total number of ended hypotheses: {len(nbest_hyps)}")
+        logging.info(f"total log probability: {best.score:.2f}")
+        logging.info(f"normalized log probability: {best.score / len(best.yseq):.2f}")
+        logging.info(f"total number of ended hypotheses: {len(nbest_hyps)}")
         if self.token_list is not None:
-            logging.debug(
+            logging.info(
                 "best hypo: "
                 + "".join([self.token_list[x] for x in best.yseq[1:-1]])
                 + "\n"
@@ -434,7 +434,7 @@ class BeamSearch(torch.nn.Module):
             )
         # add eos in the final loop to avoid that there are no ended hyps
         if i == maxlen - 1:
-            logging.debug("adding <eos> in the last position in the loop")
+            logging.info("adding <eos> in the last position in the loop")
             running_hyps = [
                 h._replace(yseq=self.append_token(h.yseq, self.eos))
                 for h in running_hyps
