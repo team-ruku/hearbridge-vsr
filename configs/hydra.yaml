@@ -17,3 +17,4 @@ pretrained_model_path:
 transfer_frontend:
 transfer_encoder:
 enable_legacy: false
+save_mouth_roi: false

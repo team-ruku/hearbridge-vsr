@@ -1,5 +1,5 @@
 import os
-import sys
+import cv2
 
 import hydra
 import torch
@@ -27,10 +27,12 @@ class InferencePipeline(torch.nn.Module):
 
             self.landmarks_detector = LandmarksDetectorRetinaFace()
 
-        self.video_process = VideoProcess(convert_gray=False)
+        self.save_roi = cfg.save_mouth_roi
+
+        self.video_process = VideoProcess(convert_gray=True)
 
         logger.debug("transforming video")
-        self.video_transform = VideoTransform(subset="test")
+        self.video_transform = VideoTransform(speed_rate=1)
 
         logger.debug("creating model module")
         self.modelmodule = ModelModule(cfg)
@@ -54,6 +56,11 @@ class InferencePipeline(torch.nn.Module):
 
         video = self.load_video(filename)
 
+        if self.save_roi:
+            logger.info("Mouth ROI capture enabled, saving ROI crop result")
+            fps = cv2.VideoCapture(filename).get(cv2.CAP_PROP_FPS)
+            self.__save_to_video("demos/roi.mp4", video, fps)
+
         logger.info("[Phase 2] Getting transcript")
         with torch.no_grad():
             transcript = self.modelmodule(video)
@@ -65,14 +72,13 @@ class InferencePipeline(torch.nn.Module):
         logger.info("[Phase 1-1] Preprocess Video")
         logger.debug(f"reading video using torchvision, filename: {filename}")
         video = torchvision.io.read_video(filename, pts_unit="sec")[0].numpy()
-
         landmarks = self.landmarks_detector(video)
+        video = torch.tensor(self.video_process(video, landmarks)).permute((0, 3, 1, 2))
+        return self.video_transform(video)
 
-        video = self.video_process(video, landmarks)
-        video = torch.tensor(video)
-        video = video.permute((0, 3, 1, 2))
-        video = self.video_transform(video)
-        return video
+    def __save_to_video(self, filename, vid, frames_per_second):
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
+        torchvision.io.write_video(filename, vid, frames_per_second)
 
 
 @hydra.main(version_base="1.3", config_path="configs", config_name="hydra")

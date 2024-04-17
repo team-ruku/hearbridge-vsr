@@ -5,10 +5,9 @@
 # Apache 2.0  (http://www.apache.org/licenses/LICENSE-2.0)
 
 import os
-
 import cv2
 import numpy as np
-from loguru import logger
+from skimage import transform as tf
 
 
 def linear_interpolate(landmarks, start_idx, stop_idx):
@@ -22,13 +21,26 @@ def linear_interpolate(landmarks, start_idx, stop_idx):
     return landmarks
 
 
+def warp_img(src, dst, img, std_size):
+    tform = tf.estimate_transform("similarity", src, dst)
+    warped = tf.warp(img, inverse_map=tform.inverse, output_shape=std_size)
+    warped = (warped * 255).astype("uint8")
+    return warped, tform
+
+
+def apply_transform(transform, img, std_size):
+    warped = tf.warp(img, inverse_map=transform.inverse, output_shape=std_size)
+    warped = (warped * 255).astype("uint8")
+    return warped
+
+
 def cut_patch(img, landmarks, height, width, threshold=5):
     center_x, center_y = np.mean(landmarks, axis=0)
     # Check for too much bias in height and width
     if abs(center_y - img.shape[0] / 2) > height + threshold:
-        raise OverflowError("too much bias in height")
+        raise Exception("too much bias in height")
     if abs(center_x - img.shape[1] / 2) > width + threshold:
-        raise OverflowError("too much bias in width")
+        raise Exception("too much bias in width")
     # Calculate bounding box coordinates
     y_min = int(round(np.clip(center_y - height, 0, img.shape[0])))
     y_max = int(round(np.clip(center_y + height, 0, img.shape[0])))
@@ -61,14 +73,14 @@ class VideoProcess:
         self.convert_gray = convert_gray
 
     def __call__(self, video, landmarks):
-        logger.info("[Phase 1-3] Transform Video")
+        # Pre-process landmarks: interpolate frames that are not detected
         preprocessed_landmarks = self.interpolate_landmarks(landmarks)
         # Exclude corner cases: no landmark in all frames
         if not preprocessed_landmarks:
             return
         # Affine transformation and crop patch
         sequence = self.crop_patch(video, preprocessed_landmarks)
-        assert sequence is not None, "crop an empty patch."
+        assert sequence is not None, f"cannot crop a patch from {filename}."
         return sequence
 
     def crop_patch(self, video, landmarks):
