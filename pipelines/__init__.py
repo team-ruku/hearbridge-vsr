@@ -20,7 +20,6 @@ class InferencePipeline(torch.nn.Module):
         if cfg.enable_legacy:
             logger.debug("legacy option enabled, loading mediapipe")
             self.landmarks_detector = LandmarksDetectorMediaPipe()
-            self.new_landmarks = LandmarksDetectorMediaPipeNew()
         else:
             logger.debug("no legacy option, loading retinaface")
             self.landmarks_detector = LandmarksDetectorRetinaFace()
@@ -68,14 +67,13 @@ class InferencePipeline(torch.nn.Module):
         logger.debug(f"reading video using torchvision, filename: {filename}")
         video = torchvision.io.read_video(filename, pts_unit="sec")[0].numpy()
         landmarks = self.landmarks_detector(video)
-        new_landmarks = self.new_landmarks(video)
 
         if self.save_roi:
             logger.info("Mouth ROI capture enabled, saving ROI crop result")
             fps = cv2.VideoCapture(filename).get(cv2.CAP_PROP_FPS)
             self.__save_to_video(
                 f"{filename.replace('.mp4','')}_roi.mp4",
-                torch.tensor(self.colorized_video(video, new_landmarks)),
+                torch.tensor(self.colorized_video(video, landmarks)),
                 fps,
             )
 
