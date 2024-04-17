@@ -12,7 +12,6 @@ from espnet.nets.lm_interface import dynamic_import_lm
 from espnet.nets.pytorch_backend.e2e_asr_transformer import E2E
 from espnet.nets.scorers.length_bonus import LengthBonus
 
-
 SP_MODEL_PATH = os.path.join(
     os.path.dirname(os.path.dirname(pathlib.Path(__file__).absolute())),
     "models",

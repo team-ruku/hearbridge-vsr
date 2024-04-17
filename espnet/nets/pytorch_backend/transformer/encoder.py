@@ -13,25 +13,17 @@ from espnet.nets.pytorch_backend.backbones.conv3d_extractor import Conv3dResNet
 from espnet.nets.pytorch_backend.nets_utils import rename_state_dict
 
 # from espnet.nets.pytorch_backend.transducer.vgg import VGG2L
-from espnet.nets.pytorch_backend.transformer.attention import (
+from espnet.nets.pytorch_backend.transformer.attention import (  # noqa: H301
     LegacyRelPositionMultiHeadedAttention,
-)  # noqa: H301
-from espnet.nets.pytorch_backend.transformer.attention import (
     MultiHeadedAttention,
-)  # noqa: H301
-from espnet.nets.pytorch_backend.transformer.attention import (
     RelPositionMultiHeadedAttention,
-)  # noqa: H301
+)
 from espnet.nets.pytorch_backend.transformer.convolution import ConvolutionModule
-from espnet.nets.pytorch_backend.transformer.embedding import (
+from espnet.nets.pytorch_backend.transformer.embedding import (  # noqa: H301
     LegacyRelPositionalEncoding,
-)  # noqa: H301
-from espnet.nets.pytorch_backend.transformer.embedding import (
     PositionalEncoding,
-)  # noqa: H301
-from espnet.nets.pytorch_backend.transformer.embedding import (
     RelPositionalEncoding,
-)  # noqa: H301
+)
 from espnet.nets.pytorch_backend.transformer.encoder_layer import EncoderLayer
 from espnet.nets.pytorch_backend.transformer.layer_norm import LayerNorm
 from espnet.nets.pytorch_backend.transformer.multi_layer_conv import (
