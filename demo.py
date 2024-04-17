@@ -1,33 +1,33 @@
 import os
-import cv2
 
+import cv2
 import hydra
 import torch
 import torchvision
 from loguru import logger
 
-from preprocessing import ModelModule, VideoTransform, VideoProcess
+from pipelines import ModelModule, VideoProcess, VideoTransform
 
 
 class InferencePipeline(torch.nn.Module):
-    def __init__(self, cfg):
+    def __init__(self, hydra_cfg, model_cfg):
         super(InferencePipeline, self).__init__()
         logger.info("[Phase 0] Initializing")
 
         logger.debug("creating LandmarkDetector, VideoProcess")
 
-        if cfg.enable_legacy:
+        if hydra_cfg.enable_legacy:
             logger.debug("legacy option enabled, loading mediapipe")
-            from preprocessing.detector import LandmarksDetectorMediaPipe
+            from pipelines.detectors import LandmarksDetectorMediaPipe
 
             self.landmarks_detector = LandmarksDetectorMediaPipe()
         else:
             logger.debug("no legacy option, loading retinaface")
-            from preprocessing.detector import LandmarksDetectorRetinaFace
+            from pipelines.detectors import LandmarksDetectorRetinaFace
 
             self.landmarks_detector = LandmarksDetectorRetinaFace()
 
-        self.save_roi = cfg.save_mouth_roi
+        self.save_roi = hydra_cfg.save_mouth_roi
 
         self.video_process = VideoProcess(convert_gray=True)
 
@@ -35,18 +35,7 @@ class InferencePipeline(torch.nn.Module):
         self.video_transform = VideoTransform(speed_rate=1)
 
         logger.debug("creating model module")
-        self.modelmodule = ModelModule(cfg)
-
-        logger.debug("loading model file")
-        self.modelmodule.model.load_state_dict(
-            torch.load(
-                "models/visual/model.pth",
-                map_location=lambda storage, loc: storage,
-            )
-        )
-
-        logger.debug("setting model to evaluation mode")
-        self.modelmodule.eval()
+        self.modelmodule = ModelModule(model_cfg)
 
     @logger.catch
     def forward(self, filename):
@@ -83,8 +72,27 @@ class InferencePipeline(torch.nn.Module):
 
 @hydra.main(version_base="1.3", config_path="configs", config_name="hydra")
 def main(cfg):
-    logger.debug(f"CFG: {cfg}")
-    pipeline = InferencePipeline(cfg)
+    logger.debug(f"Hydra config: {cfg}")
+
+    model_config = {
+        "model": {
+            "v_fps": 25,
+            "model_path": "models/visual/model.pth",
+            "model_conf": "models/visual/model.json",
+            "rnnlm": "models/language/model.pth",
+            "rnnlm_conf": "models/language/model.json",
+        },
+        "decode": {
+            "beam_size": 40,
+            "penalty": 0.0,
+            "maxlenratio": 0.0,
+            "minlenratio": 0.0,
+            "ctc_weight": 0.1,
+            "lm_weight": 0.3,
+        },
+    }
+
+    pipeline = InferencePipeline(cfg, model_config)
     transcript = pipeline(cfg.filename)
     print(f"transcript: {transcript}")
 

@@ -33,10 +33,10 @@ In the real-time case, you should write `avfoundation` or camera index number on
 
 ### Misc
 
-If you want to use `MediaPipe` instead of `Retinaface`, add `enable_legacy` flag.
+If you want to use `MediaPipe` instead of `Retinaface`, add `detector` flag.
 
 ```bash
-python3 demo.py filename=[video file] enable_legacy=true
+python3 demo.py filename=[video file] detector=mediapipe
 ```
 
 ## Reference

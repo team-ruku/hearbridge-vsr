@@ -1,3 +1,3 @@
 from .data import *
-from .detector import *
+from .detectors import *
 from .model import ModelModule

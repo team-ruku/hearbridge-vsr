@@ -1,1 +1,2 @@
-from .transforms import FunctionalModule, TextTransform, VideoTransform
+from .module import DataModule
+from .transforms import VideoTransform

@@ -4,12 +4,13 @@
 # Copyright 2021 Imperial College London (Pingchuan Ma)
 # Apache 2.0  (http://www.apache.org/licenses/LICENSE-2.0)
 
-import warnings
-import torchvision
-import mediapipe as mp
 import os
+import warnings
+
 import cv2
+import mediapipe as mp
 import numpy as np
+import torchvision
 
 
 class LandmarksDetectorMediaPipe:
