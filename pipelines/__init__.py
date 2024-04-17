@@ -1,4 +1,5 @@
 import os
+import time
 
 import cv2
 import torch
@@ -58,9 +59,15 @@ class InferencePipeline(torch.nn.Module):
 
         video = self.load_video(filename)
 
+        start = time.time()
+
         logger.info("[Phase 2] Getting transcript")
         with torch.no_grad():
             transcript = self.modelmodule(video)
+
+        end = time.time()
+
+        logger.debug(f"Inference time: {end - start}")
 
         return transcript
 
