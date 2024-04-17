@@ -29,10 +29,12 @@ class InferencePipeline(torch.nn.Module):
 
         self.save_roi = cfg.save_mouth_roi
 
-        self.video_process = VideoProcess(convert_gray=True)
+        self.video_process = VideoProcess(convert_gray=False)
+        if self.save_roi:
+            self.colorized_video = VideoProcess(convert_gray=False)
 
         logger.debug("transforming video")
-        self.video_transform = VideoTransform(speed_rate=1)
+        self.video_transform = VideoTransform(subset="test")
 
         logger.debug("creating model module")
         self.modelmodule = ModelModule(cfg)
@@ -56,11 +58,6 @@ class InferencePipeline(torch.nn.Module):
 
         video = self.load_video(filename)
 
-        if self.save_roi:
-            logger.info("Mouth ROI capture enabled, saving ROI crop result")
-            fps = cv2.VideoCapture(filename).get(cv2.CAP_PROP_FPS)
-            self.__save_to_video("demos/roi.mp4", video, fps)
-
         logger.info("[Phase 2] Getting transcript")
         with torch.no_grad():
             transcript = self.modelmodule(video)
@@ -73,6 +70,16 @@ class InferencePipeline(torch.nn.Module):
         logger.debug(f"reading video using torchvision, filename: {filename}")
         video = torchvision.io.read_video(filename, pts_unit="sec")[0].numpy()
         landmarks = self.landmarks_detector(video)
+
+        if self.save_roi:
+            logger.info("Mouth ROI capture enabled, saving ROI crop result")
+            fps = cv2.VideoCapture(filename).get(cv2.CAP_PROP_FPS)
+            self.__save_to_video(
+                f"{filename.replace('.mp4','')}_roi.mp4",
+                torch.tensor(self.colorized_video(video, landmarks)),
+                fps,
+            )
+
         video = torch.tensor(self.video_process(video, landmarks)).permute((0, 3, 1, 2))
         return self.video_transform(video)
 

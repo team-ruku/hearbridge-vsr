@@ -62,30 +62,22 @@ class AdaptiveTimeMask(torch.nn.Module):
 
 
 class VideoTransform:
-    def __init__(self, speed_rate):
-        self.video_pipeline = torch.nn.Sequential(
-            FunctionalModule(lambda x: x.unsqueeze(-1)),
-            FunctionalModule(
-                lambda x: (
-                    x
-                    if speed_rate == 1
-                    else torch.index_select(
-                        x,
-                        dim=0,
-                        index=torch.linspace(
-                            0,
-                            x.shape[0] - 1,
-                            int(x.shape[0] / speed_rate),
-                            dtype=torch.int64,
-                        ),
-                    )
-                )
-            ),
-            FunctionalModule(lambda x: x.permute(3, 0, 1, 2)),
-            FunctionalModule(lambda x: x / 255.0),
-            torchvision.transforms.CenterCrop(88),
-            torchvision.transforms.Normalize(0.421, 0.165),
-        )
+    def __init__(self, subset):
+        if subset == "train":
+            self.video_pipeline = torch.nn.Sequential(
+                FunctionalModule(lambda x: x / 255.0),
+                torchvision.transforms.RandomCrop(88),
+                torchvision.transforms.Grayscale(),
+                AdaptiveTimeMask(10, 25),
+                torchvision.transforms.Normalize(0.421, 0.165),
+            )
+        elif subset == "val" or subset == "test":
+            self.video_pipeline = torch.nn.Sequential(
+                FunctionalModule(lambda x: x / 255.0),
+                torchvision.transforms.CenterCrop(88),
+                torchvision.transforms.Grayscale(),
+                torchvision.transforms.Normalize(0.421, 0.165),
+            )
 
     def __call__(self, sample):
         # sample: T x C x H x W
