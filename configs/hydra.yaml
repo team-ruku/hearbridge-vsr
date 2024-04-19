@@ -20,3 +20,4 @@ detector: mediapipe
 save_mouth_roi: false
 device: cpu
 time: false
+debug: false

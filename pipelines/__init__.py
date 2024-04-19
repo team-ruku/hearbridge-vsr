@@ -14,39 +14,39 @@ from .model import ModelModule
 class InferencePipeline(torch.nn.Module):
     def __init__(self, cfg):
         super(InferencePipeline, self).__init__()
-        logger.info("[Phase 0] Initializing")
+        logger.info("[Phase] 0. Initializing")
 
         self.device = cfg.device
         self.time_enabled = cfg.time
         self.detector = cfg.detector
 
-        logger.debug(f"Accel device: {self.device}")
-        logger.debug(f"Face Detector: {self.detector}")
+        logger.debug(f"[Config] Accel device: {self.device}")
+        logger.debug(f"[Config] Face Detector: {self.detector}")
 
         if self.time_enabled:
             start = time.time()
 
         if self.detector == "retinaface":
-            logger.debug("loading retinaface")
+            logger.debug("[Init] Loading RetinaFace")
             self.landmarks_detector = LandmarksDetectorRetinaFace()
         else:
-            logger.debug("loading mediapipe")
+            logger.debug("[Init] Loading MediaPipe")
             self.landmarks_detector = LandmarksDetectorMediaPipe()
 
         self.save_roi = cfg.save_mouth_roi
 
-        logger.debug("creating VideoProcess")
+        logger.debug("[Init] Creating VideoProcess")
         self.video_process = VideoProcess(convert_gray=False)
         if self.save_roi:
             self.colorized_video = VideoProcess(convert_gray=False)
 
-        logger.debug("creating VideoTransform")
+        logger.debug("[Init] Creating VideoTransform")
         self.video_transform = VideoTransform()
 
-        logger.debug("creating ModelModule")
+        logger.debug("[Init] Creating ModelModule")
         self.modelmodule = ModelModule(cfg)
 
-        logger.debug("loading model")
+        logger.debug("[Init] Loading model")
         self.modelmodule.model.load_state_dict(
             torch.load(
                 "models/visual/model.pth",
@@ -54,16 +54,17 @@ class InferencePipeline(torch.nn.Module):
             )
         )
 
-        logger.debug("setting model to evaluation mode")
+        logger.debug("[Init] Setting model to evaluation mode")
         self.modelmodule.to(self.device).eval()
 
         if self.time_enabled:
             end = time.time()
-            logger.debug(f"Init time: {end - start}")
+            logger.debug(f"[Time] Init time: {end - start}")
 
     @logger.catch
+    @torch.inference_mode()
     def forward(self, filename):
-        logger.info("Starting Inference")
+        logger.info("[Phase] 1. Starting Inference")
         filename = os.path.abspath(filename)
         assert os.path.isfile(filename), f"filename: {filename} does not exist."
 
@@ -72,20 +73,19 @@ class InferencePipeline(torch.nn.Module):
         if self.time_enabled:
             start = time.time()
 
-        logger.info("[Phase 2] Getting transcript")
-        with torch.no_grad():
-            transcript = self.modelmodule(video)
+        logger.info("[Phase] 2. Getting transcript")
+        transcript = self.modelmodule(video)
 
         if self.time_enabled:
             end = time.time()
-            logger.debug(f"Inference time: {end - start}")
+            logger.debug(f"[Time] Inference time: {end - start}")
 
         return transcript
 
     @logger.catch
     def load_video(self, filename):
-        logger.info("[Phase 1-1] Preprocess Video")
-        logger.debug(f"reading video, filename: {filename}")
+        logger.info("[Phase] 1-1. Preprocess Video")
+        logger.debug(f"[Preprocess] Reading video, filename: {filename}")
 
         if self.time_enabled:
             start = time.time()
@@ -94,7 +94,9 @@ class InferencePipeline(torch.nn.Module):
         landmarks = self.landmarks_detector(video)
 
         if self.save_roi:
-            logger.info("Mouth ROI capture enabled, saving ROI crop result")
+            logger.info(
+                "[Preprocess] Mouth ROI capture enabled, saving ROI crop result"
+            )
             fps = cv2.VideoCapture(filename).get(cv2.CAP_PROP_FPS)
             self.__save_to_video(
                 f"{filename.replace('.mp4','')}_roi.mp4",
@@ -106,13 +108,13 @@ class InferencePipeline(torch.nn.Module):
 
         if self.time_enabled:
             end = time.time()
-            logger.debug(f"Preprocess time: {end - start}")
+            logger.debug(f"[Time] Preprocess time: {end - start}")
 
         return self.video_transform(video)
 
     def __save_to_video(self, filename, vid, fps):
         os.makedirs(os.path.dirname(filename), exist_ok=True)
-        logger.debug(f"writing on {filename}, {fps} fps")
+        logger.debug(f"[Preprocess] Writing ROI on {filename}, {fps} fps")
         torchvision.io.write_video(filename, vid, fps)
 
 

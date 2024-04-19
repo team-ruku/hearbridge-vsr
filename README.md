@@ -52,6 +52,12 @@ python3 demo.py filename=[video file] time=true
 python3 demo.py filename=[video file] save_mouth_roi=true
 ```
 
+- If you want to debug the instance, add `debug` flag.
+
+```bash
+python3 demo.py filename=[video file] debug=true
+```
+
 ## Reference
 
 ```bibtex

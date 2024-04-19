@@ -26,7 +26,7 @@ class LandmarksDetectorMediaPipe:
 
     @logger.catch
     def __call__(self, video_frames):
-        logger.info("[Phase 1-2] Landmark Detection")
+        logger.info("[Phase] 1-2. Landmark Detection")
 
         with self.face_detector.create_from_options(self.options) as detector:
             landmarks = []
@@ -42,7 +42,7 @@ class LandmarksDetectorMediaPipe:
                 face_points = []
                 for idx, detected_faces in enumerate(results.detections):
                     logger.debug(
-                        f"Face Detected for Index {idx}: \n{pformat(detected_faces, indent=4)}"
+                        f"[Preprocess] Face Detected for Index {idx}: \n{pformat(detected_faces, indent=4)}"
                     )
                     max_id, max_size = 0, 0
                     ih, iw, ic = frame.shape

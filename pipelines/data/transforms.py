@@ -6,7 +6,6 @@
 
 import os
 import pathlib
-import random
 
 import sentencepiece
 import torch
