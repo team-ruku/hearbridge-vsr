@@ -16,6 +16,7 @@ ckpt_path:
 pretrained_model_path:
 transfer_frontend:
 transfer_encoder:
-enable_legacy: false
+detector: mediapipe
 save_mouth_roi: false
 device: cpu
+time: false

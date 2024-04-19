@@ -8,13 +8,18 @@ from pipelines import InferencePipeline
 
 @hydra.main(version_base="1.3", config_path="configs", config_name="hydra")
 def main(cfg):
-    start = time.time()
     logger.debug(f"Hydra config: {cfg}")
+
+    if cfg.time:
+        start = time.time()
+
     pipeline = InferencePipeline(cfg)
     transcript = pipeline(cfg.filename)
-    end = time.time()
     print(f"transcript: {transcript}")
-    logger.debug(f"Exec time: {end-start}")
+
+    if cfg.time:
+        end = time.time()
+        logger.debug(f"Exec time: {end-start}")
 
 
 if __name__ == "__main__":

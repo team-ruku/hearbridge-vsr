@@ -15,32 +15,38 @@ class InferencePipeline(torch.nn.Module):
     def __init__(self, cfg):
         super(InferencePipeline, self).__init__()
         logger.info("[Phase 0] Initializing")
-        logger.debug("creating LandmarkDetector, VideoProcess")
 
         self.device = cfg.device
+        self.time_enabled = cfg.time
+        self.detector = cfg.detector
 
         logger.debug(f"Accel device: {self.device}")
+        logger.debug(f"Face Detector: {self.detector}")
 
-        if cfg.enable_legacy:
-            logger.debug("legacy option enabled, loading mediapipe")
-            self.landmarks_detector = LandmarksDetectorMediaPipe()
-        else:
-            logger.debug("no legacy option, loading retinaface")
+        if self.time_enabled:
+            start = time.time()
+
+        if self.detector == "retinaface":
+            logger.debug("loading retinaface")
             self.landmarks_detector = LandmarksDetectorRetinaFace()
+        else:
+            logger.debug("loading mediapipe")
+            self.landmarks_detector = LandmarksDetectorMediaPipe()
 
         self.save_roi = cfg.save_mouth_roi
 
+        logger.debug("creating VideoProcess")
         self.video_process = VideoProcess(convert_gray=False)
         if self.save_roi:
             self.colorized_video = VideoProcess(convert_gray=False)
 
-        logger.debug("transforming video")
+        logger.debug("creating VideoTransform")
         self.video_transform = VideoTransform()
 
-        logger.debug("creating model module")
+        logger.debug("creating ModelModule")
         self.modelmodule = ModelModule(cfg)
 
-        logger.debug("loading model file")
+        logger.debug("loading model")
         self.modelmodule.model.load_state_dict(
             torch.load(
                 "models/visual/model.pth",
@@ -51,6 +57,10 @@ class InferencePipeline(torch.nn.Module):
         logger.debug("setting model to evaluation mode")
         self.modelmodule.to(self.device).eval()
 
+        if self.time_enabled:
+            end = time.time()
+            logger.debug(f"Init time: {end - start}")
+
     @logger.catch
     def forward(self, filename):
         logger.info("Starting Inference")
@@ -59,22 +69,27 @@ class InferencePipeline(torch.nn.Module):
 
         video = self.load_video(filename)
 
-        start = time.time()
+        if self.time_enabled:
+            start = time.time()
 
         logger.info("[Phase 2] Getting transcript")
         with torch.no_grad():
             transcript = self.modelmodule(video)
 
-        end = time.time()
-
-        logger.debug(f"Inference time: {end - start}")
+        if self.time_enabled:
+            end = time.time()
+            logger.debug(f"Inference time: {end - start}")
 
         return transcript
 
     @logger.catch
     def load_video(self, filename):
         logger.info("[Phase 1-1] Preprocess Video")
-        logger.debug(f"reading video using torchvision, filename: {filename}")
+        logger.debug(f"reading video, filename: {filename}")
+
+        if self.time_enabled:
+            start = time.time()
+
         video = torchvision.io.read_video(filename, pts_unit="sec")[0].numpy()
         landmarks = self.landmarks_detector(video)
 
@@ -88,11 +103,17 @@ class InferencePipeline(torch.nn.Module):
             )
 
         video = torch.tensor(self.video_process(video, landmarks)).permute((0, 3, 1, 2))
+
+        if self.time_enabled:
+            end = time.time()
+            logger.debug(f"Preprocess time: {end - start}")
+
         return self.video_transform(video)
 
-    def __save_to_video(self, filename, vid, frames_per_second):
+    def __save_to_video(self, filename, vid, fps):
         os.makedirs(os.path.dirname(filename), exist_ok=True)
-        torchvision.io.write_video(filename, vid, frames_per_second)
+        logger.debug(f"writing on {filename}, {fps} fps")
+        torchvision.io.write_video(filename, vid, fps)
 
 
 __all__ = [InferencePipeline]

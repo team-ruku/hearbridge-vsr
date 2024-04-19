@@ -1,5 +1,6 @@
 import os
 import pathlib
+from pprint import pformat
 
 import mediapipe as mp
 import numpy as np
@@ -40,7 +41,9 @@ class LandmarksDetectorMediaPipe:
 
                 face_points = []
                 for idx, detected_faces in enumerate(results.detections):
-                    logger.debug(f"Face Detected for Index {idx}: {detected_faces}")
+                    logger.debug(
+                        f"Face Detected for Index {idx}: \n{pformat(detected_faces, indent=4)}"
+                    )
                     max_id, max_size = 0, 0
                     ih, iw, ic = frame.shape
                     bbox = detected_faces.bounding_box
