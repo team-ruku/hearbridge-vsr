@@ -1,6 +1,6 @@
 # HearBridge Visual Speech Recognition
 
-> Conversation Textualization via Lip-reading
+> Conversation Textualization via Lip-reading, supporting multi-party conversations
 
 ## Prerequisites
 
@@ -22,6 +22,7 @@ conda install -c conda-forge ffmpeg
 
 - `models/visual/model.pth`
 - `models/spm`
+- `models/mediapipe/short_range.tflite`
 
 ## Run
 
@@ -30,6 +31,32 @@ python3 demo.py filename=[video file]
 ```
 
 In the real-time case, you should write `avfoundation` or camera index number on the `filename`.
+
+### Misc
+
+- If you want to use `RetinaFace` instead of `MediaPipe`, add `detector` flag.
+
+```bash
+python3 demo.py filename=[video file] detector=retinaface
+```
+
+- If you want to check the execution time, add `time` flag.
+
+```bash
+python3 demo.py filename=[video file] time=true
+```
+
+- If you want to check the mouth ROI crop result, add `save_mouth_roi` flag.
+
+```bash
+python3 demo.py filename=[video file] save_mouth_roi=true
+```
+
+- If you want to debug the instance, add `debug` flag.
+
+```bash
+python3 demo.py filename=[video file] debug=true
+```
 
 ## Reference
 
