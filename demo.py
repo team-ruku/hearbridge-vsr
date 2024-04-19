@@ -1,5 +1,5 @@
-import time
 import sys
+import time
 
 import hydra
 from loguru import logger
