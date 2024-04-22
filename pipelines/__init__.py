@@ -18,11 +18,9 @@ class InferencePipeline(torch.nn.Module):
 
         self.device = cfg.device
         self.time_enabled = cfg.time
-        self.detector = cfg.detector
         self.save_roi = cfg.save_mouth_roi
 
         logger.debug(f"[Config] Accel device: {self.device}")
-        logger.debug(f"[Config] Face Detector: {self.detector}")
 
         if self.time_enabled:
             start = time.time()

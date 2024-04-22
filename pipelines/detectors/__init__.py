@@ -1,3 +1,2 @@
-from .mediapipe_detector import LandmarksDetectorMediaPipe
-from .retinaface_detector import LandmarksDetectorRetinaFace
+from .detector import LandmarksDetectorMediaPipe
 from .video_process import VideoProcess
