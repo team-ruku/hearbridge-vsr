@@ -34,12 +34,6 @@ In the real-time case, you should write `avfoundation` or camera index number on
 
 ### Misc
 
-- If you want to use `RetinaFace` instead of `MediaPipe`, add `detector` flag.
-
-```bash
-python3 demo.py filename=[video file] detector=retinaface
-```
-
 - If you want to check the execution time, add `time` flag.
 
 ```bash
