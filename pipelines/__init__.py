@@ -19,6 +19,7 @@ class InferencePipeline(torch.nn.Module):
         self.device = cfg.device
         self.time_enabled = cfg.time
         self.detector = cfg.detector
+        self.save_roi = cfg.save_mouth_roi
 
         logger.debug(f"[Config] Accel device: {self.device}")
         logger.debug(f"[Config] Face Detector: {self.detector}")
@@ -26,14 +27,8 @@ class InferencePipeline(torch.nn.Module):
         if self.time_enabled:
             start = time.time()
 
-        if self.detector == "retinaface":
-            logger.debug("[Init] Loading RetinaFace")
-            self.landmarks_detector = LandmarksDetectorRetinaFace()
-        else:
-            logger.debug("[Init] Loading MediaPipe")
-            self.landmarks_detector = LandmarksDetectorMediaPipe()
-
-        self.save_roi = cfg.save_mouth_roi
+        logger.debug("[Init] Loading MediaPipe")
+        self.landmarks_detector = LandmarksDetectorMediaPipe()
 
         logger.debug("[Init] Creating VideoProcess")
         self.video_process = VideoProcess(convert_gray=False)
