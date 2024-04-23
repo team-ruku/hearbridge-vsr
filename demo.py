@@ -13,16 +13,19 @@ from pipelines.data import DataLoader
 
 def stream(queue, format, segment_length):
     streamer = torchaudio.io.StreamReader(
-        src="0",
+        src="0:1",
         format=format,
         option={"framerate": "30", "pixel_format": "rgb24"},
     )
+
     streamer.add_basic_video_stream(
         frames_per_chunk=segment_length,
         buffer_chunk_size=500,
         width=600,
         height=340,
     )
+
+    print(streamer.get_src_stream_info(0))
 
     for chunk in streamer.stream(timeout=-1, backoff=1.0):
         queue.put(chunk)
@@ -57,9 +60,8 @@ def main(cfg):
                 continue
 
             video = data_loader.cacher(torch.cat(video_chunks))
-            print(video)
             transcript = pipeline(video)
-            print(transcript, end="", flush=True)
+            print(transcript, end=" ", flush=True)
 
             num_video_frames = 0
             video_chunks = []

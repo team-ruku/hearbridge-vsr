@@ -15,9 +15,9 @@ class ContextCacher:
             )
 
         if self.context_length == 0:
-            return chunk.float()
+            return chunk
 
         else:
             chunk_with_context = torch.cat((self.context, chunk))
             self.context = chunk[-self.context_length :]
-            return chunk_with_context.float()
+            return chunk_with_context

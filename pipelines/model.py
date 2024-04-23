@@ -24,10 +24,8 @@ class ModelModule(LightningModule):
 
     @logger.catch
     def forward(self, sample):
-        logger.info("[Phase] 2-1. Encoding -> Decoding (with BeamSearch)")
         self.beam_search = get_beam_search_decoder(self.model, self.token_list)
         enc_feat, _ = self.model.encoder(sample.unsqueeze(0).to(self.device), None)
-        logger.debug("[Model] Encoding Features")
         enc_feat = enc_feat.squeeze(0)
 
         nbest_hyps = self.beam_search(enc_feat)

@@ -48,22 +48,14 @@ class InferencePipeline(torch.nn.Module):
     @logger.catch
     @torch.inference_mode()
     def forward(self, video):
-        logger.info("[Phase] 1. Starting Inference")
 
         if self.time_enabled:
             start = time.time()
 
-        print(type(video))
-        landmarks = self.landmark_detector.obsolete(
-            video.permute(0, 2, 3, 1).numpy().astype(np.uint8)
-        )
-        video = (
-            torch.tensor(self.video_process(torch.tensor(video), landmarks))
-            .permute((0, 3, 1, 2))
-            .float()
-        )
+        video = video.permute(0, 2, 3, 1).numpy().astype(np.uint8)
+        landmarks = self.landmark_detector(video.astype(np.uint8))
+        video = torch.tensor(self.video_process(video, landmarks)).permute((0, 3, 1, 2))
 
-        logger.info("[Phase] 2. Getting transcript")
         transcript = self.modelmodule(self.video_transform(video))
 
         if self.time_enabled:

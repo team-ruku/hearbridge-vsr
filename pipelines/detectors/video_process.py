@@ -61,7 +61,7 @@ class VideoProcess:
         self.convert_gray = convert_gray
 
     def __call__(self, video, landmarks):
-        logger.info("[Phase] 1-3. Affine Transformation")
+        # logger.info("[Phase] 1-3. Affine Transformation")
         # Pre-process landmarks: interpolate frames that are not detected
         preprocessed_landmarks = self.interpolate_landmarks(landmarks)
         # Exclude corner cases: no landmark in all frames
@@ -72,7 +72,7 @@ class VideoProcess:
         return sequence
 
     def crop_patch(self, video, landmarks):
-        logger.info("[Preprocess] Affine Transformation + Crop Patch")
+        # logger.info("[Preprocess] Affine Transformation + Crop Patch")
         sequence = []
         for frame_idx, frame in enumerate(video):
             window_margin = min(
@@ -103,7 +103,7 @@ class VideoProcess:
         return np.array(sequence)
 
     def interpolate_landmarks(self, landmarks):
-        logger.debug("[Preproces] Interploate missing landmarks")
+        # logger.debug("[Preproces] Interploate missing landmarks")
         valid_frames_idx = [idx for idx, lm in enumerate(landmarks) if lm is not None]
 
         if not valid_frames_idx:
