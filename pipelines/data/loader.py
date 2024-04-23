@@ -1,5 +1,6 @@
 import torchvision
 from pipelines.detectors import *
+from loguru import logger
 
 
 class DataLoader:

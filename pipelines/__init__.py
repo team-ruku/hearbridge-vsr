@@ -10,6 +10,8 @@ from .data import *
 from .detectors import *
 from .model import ModelModule
 
+from pprint import pformat
+
 
 class InferencePipeline(torch.nn.Module):
     def __init__(self, cfg):
@@ -82,7 +84,9 @@ class InferencePipeline(torch.nn.Module):
             start = time.time()
 
         video = torchvision.io.read_video(filename, pts_unit="sec")[0].numpy()
-        landmarks = self.landmarks_detector(video)
+        landmarks = self.landmarks_detector.obsolete(video)
+        max_id, for_check = self.landmarks_detector(video)
+        logger.debug(pformat(for_check, indent=4))
 
         if self.save_roi:
             logger.info(
