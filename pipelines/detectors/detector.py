@@ -70,7 +70,7 @@ class LandmarksDetectorMediaPipe:
                     face_points.append(lmx)
 
                 for idx, current_face_point in enumerate(face_points):
-                    if not idx in landmarks.keys():
+                    if not landmarks.keys():
                         landmarks[idx] = []
 
                     landmarks[idx].append(current_face_point)

@@ -12,11 +12,12 @@ exp_name:
 gpus:
 slurm_job_id:
 filename:
-ckpt_path:
-pretrained_model_path:
 transfer_frontend:
 transfer_encoder:
-save_mouth_roi: false
+format: avfoundation
 device: cpu
 time: false
 debug: false
+buffer_size: 32
+segment_length: 8
+context_length: 4
