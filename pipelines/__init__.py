@@ -30,8 +30,6 @@ class InferencePipeline(torch.nn.Module):
 
         logger.debug("[Init] Creating VideoProcess")
         self.video_process = VideoProcess(convert_gray=False)
-        if self.save_roi:
-            self.colorized_video = VideoProcess(convert_gray=False)
 
         logger.debug("[Init] Creating VideoTransform")
         self.video_transform = VideoTransform()
@@ -93,7 +91,7 @@ class InferencePipeline(torch.nn.Module):
             fps = cv2.VideoCapture(filename).get(cv2.CAP_PROP_FPS)
             self.__save_to_video(
                 f"{filename.replace('.mp4','')}_roi.mp4",
-                torch.tensor(self.colorized_video(video, landmarks)),
+                torch.tensor(self.video_process(video, landmarks)),
                 fps,
             )
 
