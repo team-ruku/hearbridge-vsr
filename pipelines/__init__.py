@@ -1,4 +1,5 @@
 import time
+import asyncio
 
 import cv2
 import mediapipe as mp
@@ -14,6 +15,7 @@ class InferencePipeline(torch.nn.Module):
     def __init__(self, cfg):
         super(InferencePipeline, self).__init__()
         self.device = cfg.device
+        self.debug = cfg.debug
 
         logger.debug(f"[Config] Accel device: {self.device}")
 
@@ -39,6 +41,10 @@ class InferencePipeline(torch.nn.Module):
         video = torch.tensor(self.video_process(video, landmarks)).permute((0, 3, 1, 2))
         return self.video_transform(video)
 
+    async def infer(self, video, landmarks):
+        transcript = self.modelmodule(self.__load_video(video, landmarks))
+        return transcript
+
     @logger.catch
     @torch.inference_mode()
     def forward(self):
@@ -46,8 +52,8 @@ class InferencePipeline(torch.nn.Module):
         last_timestamp = 0
 
         self.datamodule.reset_chunk()
-        self.ctx = torch.multiprocessing.get_context("spawn")
-        self.queue = self.ctx.Queue()
+        # self.ctx = torch.multiprocessing.get_context("spawn")
+        # self.queue = self.ctx.Queue()
 
         while self.datamodule.capture.isOpened():
             status, frame = self.datamodule.capture.read()
@@ -96,22 +102,34 @@ class InferencePipeline(torch.nn.Module):
                             self.datamodule.frame_chunk, axis=0
                         )
 
-                        logger.debug("[Infernece] Thread Inference")
-                        process = self.ctx.Process(
-                            target=self.modelmodule,
-                            args=(
-                                self.__load_video(
-                                    numpy_arrayed_chunk,
-                                    self.datamodule.calculated_keypoints,
-                                ),
-                                self.queue,
-                            ),
+                        logger.debug("[Infernece] Inference Task Created")
+                        asyncio.create_task(
+                            self.infer(
+                                numpy_arrayed_chunk,
+                                self.datamodule.calculated_keypoints,
+                            )
                         )
-                        process.start()
+                        # process = self.ctx.Process(
+                        #    target=self.modelmodule,
+                        #    args=(
+                        #        self.__load_video(
+                        #            numpy_arrayed_chunk,
+                        #            self.datamodule.calculated_keypoints,
+                        #        ),
+                        #        self.queue,
+                        #    ),
+                        # )
+                        # process.start()
+
+                        if self.debug:
+                            logger.debug("[Inference] Task Lists:")
+                            tasks = asyncio.all_tasks()
+                            for task in tasks:
+                                logger.debug(f"{task.get_name()} -> {task.get_coro()}")
 
                         self.datamodule.reset_chunk()
 
-                        process.join()
+                        # process.join()
 
                     self.datamodule.prev_status = self.datamodule.mouth_status
 

@@ -49,8 +49,8 @@ class ModelModule(LightningModule):
         )
 
     @logger.catch
-    def forward(self, sample, queue):
-        enc_feat, _ = self.model.encoder(sample.unsqueeze(0).to(self.device), None)
+    def forward(self, sample):
+        enc_feat, _ = self.model.encoder(sample.unsqueeze(0).to(self.cfg.device), None)
         enc_feat = enc_feat.squeeze(0)
 
         nbest_hyps = self.beam_search(enc_feat)
@@ -61,6 +61,5 @@ class ModelModule(LightningModule):
         )
 
         print(predicted)
-        queue.put(predicted)
 
         return predicted
