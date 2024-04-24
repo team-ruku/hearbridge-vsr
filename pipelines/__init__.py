@@ -108,6 +108,8 @@ class InferencePipeline(torch.nn.Module):
 
                         self.datamodule.reset_chunk()
 
+                        process.join()
+
                     self.datamodule.prev_status = self.datamodule.mouth_status
 
 
