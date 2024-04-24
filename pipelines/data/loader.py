@@ -48,7 +48,7 @@ class DataModule:
     def calculate_mouth_distance(self, a, b):
         distance = abs(a.x - b.x) + abs(a.y - b.y) + abs(a.z - b.z)
 
-        if distance < 0.003:
+        if distance < 0.005:
             self.mouth_status = False
         else:
             self.mouth_status = True
