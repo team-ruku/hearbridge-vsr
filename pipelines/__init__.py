@@ -43,6 +43,7 @@ class InferencePipeline(torch.nn.Module):
     @torch.inference_mode()
     def forward(self):
         start_time = time.time()
+        last_timestamp = 0
 
         self.datamodule.reset_chunk()
         self.ctx = torch.multiprocessing.get_context("spawn")
@@ -59,9 +60,14 @@ class InferencePipeline(torch.nn.Module):
 
             logger.debug(f"[Inference] Current Timestamp: {timestamp_ms}")
 
+            if last_timestamp == timestamp_ms:
+                continue
+
             self.datamodule.face_landmark.detect_async(
                 mp.Image(image_format=mp.ImageFormat.SRGB, data=flipped), timestamp_ms
             )
+
+            last_timestamp = timestamp_ms
 
             if self.datamodule.landmark_output is not None:
                 image = cv2.cvtColor(self.datamodule.landmark_output, cv2.COLOR_RGB2BGR)
