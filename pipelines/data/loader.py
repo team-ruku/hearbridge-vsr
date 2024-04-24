@@ -31,6 +31,9 @@ class DataLoader:
         self.landmark_result = None
         self.landmark_output = None
 
+        self.mouth_status = False  # 아가리가 벌려져있는지
+        self.prev_status = False  # 아가리 이전 상태
+
         self.capture = cv2.VideoCapture(0)
 
     def __landmarker_callback(
@@ -75,47 +78,3 @@ class DataLoader:
     def __reset_chunk(self):
         self.frame_chunk = []
         self.calculated_keypoints = []
-
-    def __call__(self):
-        start_time = time.time()  # MediaPipe async 타임스탬프
-
-        self.mouth_status = False  # 아가리가 벌려져있는지
-        self.prev_status = False  # 아가리 이전 상태
-        self.__reset_chunk()
-
-        while self.capture.isOpened():
-            status, frame = self.capture.read()
-
-            if not status:
-                continue
-
-            flipped = cv2.flip(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB), 1)
-            timestamp_ms = int((time.time() - start_time) * 1000)
-
-            self.face_landmark.detect_async(
-                mp.Image(image_format=mp.ImageFormat.SRGB, data=flipped), timestamp_ms
-            )
-
-            if self.landmark_output is not None:
-                image = cv2.cvtColor(self.landmark_output, cv2.COLOR_RGB2BGR)
-
-                for detected_landmark in self.landmark_result.face_landmarks:
-                    self.__calculate_mouth_distance(
-                        detected_landmark[13], detected_landmark[14]
-                    )
-                    landmark = self.__calculate_keypoints(detected_landmark, image)
-
-                    if self.mouth_status is True:
-                        self.frame_chunk.append(image)
-                        self.calculated_keypoints.append(landmark)
-
-                    if (
-                        self.prev_status != self.mouth_status
-                        and self.prev_status == True
-                    ):
-                        # Inference
-                        numpy_arrayed_chunk = np.stack(self.frame_chunk, axis=0)
-                        self.__reset_chunk()
-                        pass
-
-                    self.prev_status = self.mouth_status

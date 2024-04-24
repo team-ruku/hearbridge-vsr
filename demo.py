@@ -1,11 +1,9 @@
 import sys
 
 import hydra
-import torch
 from loguru import logger
 
 from pipelines import InferencePipeline
-from pipelines.data import DataLoader
 
 
 @hydra.main(version_base="1.3", config_path="configs", config_name="hydra")
