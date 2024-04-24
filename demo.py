@@ -13,7 +13,7 @@ from pipelines.data import DataLoader
 
 def stream(queue, format, segment_length):
     streamer = torchaudio.io.StreamReader(
-        src="0:1",
+        src="0",
         format=format,
         option={"framerate": "30", "pixel_format": "rgb24"},
     )
@@ -27,8 +27,11 @@ def stream(queue, format, segment_length):
 
     print(streamer.get_src_stream_info(0))
 
+    frame_num = 0
+
     for chunk in streamer.stream(timeout=-1, backoff=1.0):
-        queue.put(chunk)
+        frame_num += 1
+        queue.put([frame_num, chunk])
 
 
 @hydra.main(version_base="1.3", config_path="configs", config_name="hydra")
@@ -39,7 +42,13 @@ def main(cfg):
 
     logger.debug(f"[Config] Hydra config: {cfg}")
 
-    data_loader = DataLoader(cfg.filename, cfg.format)
+    data_loader = DataLoader(
+        cfg.filename,
+        cfg.format,
+        cfg.buffer_size,
+        cfg.segment_length,
+        cfg.context_length,
+    )
     pipeline = InferencePipeline(cfg)
     ctx = mp.get_context("spawn")
 
@@ -51,7 +60,9 @@ def main(cfg):
         video_chunks = []
 
         while True:
-            video_chunk = queue.get()[0]
+            print(queue.get())
+            cur_frame, video_chunk = queue.get()
+            video_chunk = video_chunk[0]
             num_video_frames += video_chunk.size(0)
 
             video_chunks.append(video_chunk)

@@ -53,7 +53,15 @@ class InferencePipeline(torch.nn.Module):
             start = time.time()
 
         video = video.permute(0, 2, 3, 1).numpy().astype(np.uint8)
-        landmarks = self.landmark_detector(video.astype(np.uint8))
+        landmarks = self.landmark_detector.obsolete(
+            video.astype(np.uint8)
+            .astype(np.uint8)
+            .astype(np.uint8)
+            .astype(np.uint8)
+            .astype(np.uint8)
+            .astype(np.uint8)
+            .astype(np.uint8)
+        )
         video = torch.tensor(self.video_process(video, landmarks)).permute((0, 3, 1, 2))
 
         transcript = self.modelmodule(self.video_transform(video))
