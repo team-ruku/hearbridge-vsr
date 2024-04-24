@@ -1,8 +1,8 @@
 import sys
 
 import hydra
-import torch.multiprocessing as mp
 import torch
+import torch.multiprocessing as mp
 import torchaudio
 import torchvision
 from loguru import logger

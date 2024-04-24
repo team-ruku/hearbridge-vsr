@@ -23,6 +23,7 @@ conda install -c conda-forge ffmpeg
 - `models/visual/model.pth`
 - `models/spm`
 - `models/mediapipe/short_range.tflite`
+- `models/mediapipe/face_landmarker.tflite`
 
 ## Run
 
@@ -33,18 +34,6 @@ python3 demo.py filename=[video file]
 In the real-time case, you should write `avfoundation` or camera index number on the `filename`.
 
 ### Misc
-
-- If you want to check the execution time, add `time` flag.
-
-```bash
-python3 demo.py filename=[video file] time=true
-```
-
-- If you want to check the mouth ROI crop result, add `save_mouth_roi` flag.
-
-```bash
-python3 demo.py filename=[video file] save_mouth_roi=true
-```
 
 - If you want to debug the instance, add `debug` flag.
 

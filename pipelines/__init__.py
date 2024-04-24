@@ -1,13 +1,12 @@
 import time
 
+import numpy as np
 import torch
 from loguru import logger
 
 from .data import *
 from .detectors import *
 from .model import ModelModule
-
-import numpy as np
 
 
 class InferencePipeline(torch.nn.Module):
@@ -48,7 +47,6 @@ class InferencePipeline(torch.nn.Module):
     @logger.catch
     @torch.inference_mode()
     def forward(self, video):
-
         if self.time_enabled:
             start = time.time()
 
