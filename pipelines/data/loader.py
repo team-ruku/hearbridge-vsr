@@ -56,7 +56,7 @@ class DataLoader:
         return distance
 
     def calculate_keypoints(self, landmark, image):
-        return [
+        lmx = [
             [  # 오른쪽 눈
                 int(landmark[472].x * image.shape[1]),
                 int(landmark[472].y * image.shape[0]),
@@ -74,6 +74,8 @@ class DataLoader:
                 int(landmark[13].y * image.shape[0]),
             ],
         ]
+
+        return np.array(lmx)
 
     def reset_chunk(self):
         self.frame_chunk = []

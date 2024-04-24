@@ -69,7 +69,6 @@ class InferencePipeline(torch.nn.Module):
                     )
 
                     if self.data_loader.mouth_status is True:
-                        print("mouth opened")
                         self.data_loader.frame_chunk.append(image)
                         self.data_loader.calculated_keypoints.append(landmark)
 
@@ -77,7 +76,6 @@ class InferencePipeline(torch.nn.Module):
                         self.data_loader.prev_status != self.data_loader.mouth_status
                         and self.data_loader.prev_status == True
                     ):
-                        print("mouth closed")
                         # Inference
                         numpy_arrayed_chunk = np.stack(
                             self.data_loader.frame_chunk, axis=0
