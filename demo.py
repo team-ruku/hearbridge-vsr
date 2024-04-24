@@ -1,4 +1,5 @@
 import sys
+import asyncio
 
 import hydra
 from loguru import logger
@@ -14,7 +15,7 @@ def main(cfg):
 
     logger.debug(f"[Config] Hydra config: {cfg}")
 
-    InferencePipeline(cfg)()
+    asyncio.run(InferencePipeline(cfg)())
 
 
 if __name__ == "__main__":

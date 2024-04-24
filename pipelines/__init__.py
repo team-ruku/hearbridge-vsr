@@ -45,12 +45,15 @@ class InferencePipeline(torch.nn.Module):
 
     @logger.catch
     async def infer(self, video, landmarks):
+        logger.debug("[Task] Created")
         transcript = self.modelmodule(self.__load_video(video, landmarks))
+        print(transcript)
+        logger.debug("[Task] End")
         return transcript
 
     @logger.catch
     @torch.inference_mode()
-    def forward(self):
+    async def forward(self):
         start_time = time.time()
         last_timestamp = 0
 
@@ -106,12 +109,14 @@ class InferencePipeline(torch.nn.Module):
                         )
 
                         logger.debug("[Infernece] Inference Task Created")
-                        self.loop.create_task(
+                        infer_task = asyncio.create_task(
                             self.infer(
                                 numpy_arrayed_chunk,
                                 self.datamodule.calculated_keypoints,
                             )
                         )
+
+                        await infer_task
                         # process = self.ctx.Process(
                         #    target=self.modelmodule,
                         #    args=(
@@ -126,7 +131,7 @@ class InferencePipeline(torch.nn.Module):
 
                         if self.debug:
                             logger.debug("[Inference] Task Lists:")
-                            tasks = asyncio.all_tasks()
+                            tasks = asyncio.all_tasks(self.loop)
                             for task in tasks:
                                 logger.debug(f"{task.get_name()} -> {task.get_coro()}")
 
