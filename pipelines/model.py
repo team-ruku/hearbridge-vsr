@@ -48,7 +48,7 @@ class ModelModule(LightningModule):
         )
 
     @logger.catch
-    def forward(self, sample):
+    def forward(self, sample, queue):
         self.beam_search = self.get_beam_search_decoder()
 
         enc_feat, _ = self.model.encoder(sample.unsqueeze(0).to(self.device), None)
@@ -60,4 +60,8 @@ class ModelModule(LightningModule):
         predicted = self.text_transform.post_process(predicted_token_id).replace(
             "<eos>", ""
         )
+
+        print(predicted)
+        queue.put(predicted)
+
         return predicted

@@ -6,7 +6,7 @@ import numpy as np
 import torch
 from loguru import logger
 
-from .data import *
+from .data import VideoProcess, VideoTransform, DataModule
 from .model import ModelModule
 
 
@@ -45,6 +45,8 @@ class InferencePipeline(torch.nn.Module):
         start_time = time.time()
 
         self.datamodule.reset_chunk()
+        self.ctx = torch.multiprocessing.get_context("spawn")
+        self.queue = self.ctx.Queue()
 
         while self.datamodule.capture.isOpened():
             status, frame = self.datamodule.capture.read()
@@ -60,9 +62,7 @@ class InferencePipeline(torch.nn.Module):
             )
 
             if self.datamodule.landmark_output is not None:
-                image = cv2.cvtColor(
-                    self.data_module.landmark_output, cv2.COLOR_RGB2BGR
-                )
+                image = cv2.cvtColor(self.datamodule.landmark_output, cv2.COLOR_RGB2BGR)
 
                 for detected_faces in self.datamodule.landmark_result.face_landmarks:
                     self.datamodule.calculate_mouth_distance(
@@ -73,6 +73,7 @@ class InferencePipeline(torch.nn.Module):
                     )
 
                     if self.datamodule.mouth_status is True:
+                        logger.debug("[Infernece] Mouth is opened")
                         self.datamodule.frame_chunk.append(image)
                         self.datamodule.calculated_keypoints.append(landmark)
 
@@ -80,20 +81,24 @@ class InferencePipeline(torch.nn.Module):
                         self.datamodule.prev_status != self.datamodule.mouth_status
                         and self.datamodule.prev_status == True
                     ):
+                        logger.debug("[Infernece] Mouth is closed")
                         numpy_arrayed_chunk = np.stack(
                             self.datamodule.frame_chunk, axis=0
                         )
 
-                        transcript = self.modelmodule(
-                            self.__load_video(
-                                numpy_arrayed_chunk,
-                                self.datamodule.calculated_keypoints,
-                            )
+                        process = self.ctx.Process(
+                            target=self.modelmodule,
+                            args=(
+                                self.__load_video(
+                                    numpy_arrayed_chunk,
+                                    self.datamodule.calculated_keypoints,
+                                ),
+                                self.queue,
+                            ),
                         )
+                        process.start()
 
                         self.datamodule.reset_chunk()
-
-                        print(transcript)
 
                     self.datamodule.prev_status = self.datamodule.mouth_status
 
