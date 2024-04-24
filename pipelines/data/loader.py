@@ -1,15 +1,14 @@
 import os
 import pathlib
-import time
 
 import cv2
 import mediapipe as mp
 import numpy as np
 
-from pipelines.detectors import *
+from loguru import logger
 
 
-class DataLoader:
+class DataModule:
     def __init__(self) -> None:
         self.face_landmark_options = mp.tasks.vision.FaceLandmarkerOptions(
             base_options=mp.tasks.BaseOptions(
@@ -36,6 +35,7 @@ class DataLoader:
 
         self.capture = cv2.VideoCapture(0)
 
+    @logger.catch
     def __landmarker_callback(
         self,
         result: mp.tasks.vision.FaceLandmarkerResult,

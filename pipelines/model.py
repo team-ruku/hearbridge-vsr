@@ -13,7 +13,6 @@ from .data import TextTransform
 class ModelModule(LightningModule):
     def __init__(self, cfg):
         super().__init__()
-        logger.info("[Phase] 0-1. Initializing model")
         self.save_hyperparameters(cfg)
         self.cfg = cfg
         self.backbone_args = self.cfg.model
@@ -22,9 +21,36 @@ class ModelModule(LightningModule):
         self.token_list = self.text_transform.token_list
         self.model = E2E(len(self.token_list), self.backbone_args)
 
+    def get_beam_search_decoder(self, ctc_weight=0.1, beam_size=40):
+        scorers = {
+            "decoder": self.model.decoder,
+            "ctc": CTCPrefixScorer(self.model.ctc, self.model.eos),
+            "length_bonus": LengthBonus(len(self.token_list)),
+            "lm": None,
+        }
+
+        weights = {
+            "decoder": 1.0 - ctc_weight,
+            "ctc": ctc_weight,
+            "lm": 0.0,
+            "length_bonus": 0.0,
+        }
+
+        return BatchBeamSearch(
+            beam_size=beam_size,
+            vocab_size=len(self.token_list),
+            weights=weights,
+            scorers=scorers,
+            sos=self.model.sos,
+            eos=self.model.eos,
+            token_list=self.token_list,
+            pre_beam_score_key=None if ctc_weight == 1.0 else "decoder",
+        )
+
     @logger.catch
     def forward(self, sample):
-        self.beam_search = get_beam_search_decoder(self.model, self.token_list)
+        self.beam_search = self.get_beam_search_decoder()
+
         enc_feat, _ = self.model.encoder(sample.unsqueeze(0).to(self.device), None)
         enc_feat = enc_feat.squeeze(0)
 
@@ -35,30 +61,3 @@ class ModelModule(LightningModule):
             "<eos>", ""
         )
         return predicted
-
-
-def get_beam_search_decoder(model, token_list, ctc_weight=0.1, beam_size=40):
-    scorers = {
-        "decoder": model.decoder,
-        "ctc": CTCPrefixScorer(model.ctc, model.eos),
-        "length_bonus": LengthBonus(len(token_list)),
-        "lm": None,
-    }
-
-    weights = {
-        "decoder": 1.0 - ctc_weight,
-        "ctc": ctc_weight,
-        "lm": 0.0,
-        "length_bonus": 0.0,
-    }
-
-    return BatchBeamSearch(
-        beam_size=beam_size,
-        vocab_size=len(token_list),
-        weights=weights,
-        scorers=scorers,
-        sos=model.sos,
-        eos=model.eos,
-        token_list=token_list,
-        pre_beam_score_key=None if ctc_weight == 1.0 else "decoder",
-    )

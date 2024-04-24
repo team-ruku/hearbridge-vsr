@@ -28,18 +28,10 @@ conda install -c conda-forge ffmpeg
 ## Run
 
 ```bash
-python3 demo.py filename=[video file]
+python3 demo.py
 ```
 
-In the real-time case, you should write `avfoundation` or camera index number on the `filename`.
-
-### Misc
-
-- If you want to debug the instance, add `debug` flag.
-
-```bash
-python3 demo.py filename=[video file] debug=true
-```
+- For debugging, add `debug` flag.
 
 ## Reference
 

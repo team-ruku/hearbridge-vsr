@@ -7,7 +7,6 @@ import torch
 from loguru import logger
 
 from .data import *
-from .detectors import *
 from .model import ModelModule
 
 
@@ -16,19 +15,25 @@ class InferencePipeline(torch.nn.Module):
         super(InferencePipeline, self).__init__()
         self.device = cfg.device
 
+        logger.debug(f"[Config] Accel device: {self.device}")
+
         self.video_process = VideoProcess(convert_gray=False)
         self.video_transform = VideoTransform()
-
-        self.data_loader = DataLoader()
-
+        self.datamodule = DataModule()
         self.modelmodule = ModelModule(cfg)
+
+        logger.debug(f"[Init] Loaded Modules")
+
         self.modelmodule.model.load_state_dict(
             torch.load(
                 "models/visual/model.pth",
                 map_location=lambda storage, loc: storage,
             )
         )
+        logger.debug(f"[Init] Loaded VSR Model")
+
         self.modelmodule.to(self.device).eval()
+        logger.debug(f"[Init] Setting VSR Model to evaluation mode")
 
     def __load_video(self, video, landmarks):
         video = torch.tensor(self.video_process(video, landmarks)).permute((0, 3, 1, 2))
@@ -39,10 +44,10 @@ class InferencePipeline(torch.nn.Module):
     def forward(self):
         start_time = time.time()
 
-        self.data_loader.reset_chunk()
+        self.datamodule.reset_chunk()
 
-        while self.data_loader.capture.isOpened():
-            status, frame = self.data_loader.capture.read()
+        while self.datamodule.capture.isOpened():
+            status, frame = self.datamodule.capture.read()
 
             if not status:
                 continue
@@ -50,50 +55,47 @@ class InferencePipeline(torch.nn.Module):
             flipped = cv2.flip(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB), 1)
             timestamp_ms = int((time.time() - start_time) * 1000)
 
-            self.data_loader.face_landmark.detect_async(
+            self.datamodule.face_landmark.detect_async(
                 mp.Image(image_format=mp.ImageFormat.SRGB, data=flipped), timestamp_ms
             )
 
-            if self.data_loader.landmark_output is not None:
+            if self.datamodule.landmark_output is not None:
                 image = cv2.cvtColor(
-                    self.data_loader.landmark_output, cv2.COLOR_RGB2BGR
+                    self.data_module.landmark_output, cv2.COLOR_RGB2BGR
                 )
 
-                for (
-                    detected_landmark
-                ) in self.data_loader.landmark_result.face_landmarks:
-                    self.data_loader.calculate_mouth_distance(
-                        detected_landmark[13], detected_landmark[14]
+                for detected_faces in self.datamodule.landmark_result.face_landmarks:
+                    self.datamodule.calculate_mouth_distance(
+                        detected_faces[13], detected_faces[14]
                     )
-                    landmark = self.data_loader.calculate_keypoints(
-                        detected_landmark, image
+                    landmark = self.datamodule.calculate_keypoints(
+                        detected_faces, image
                     )
 
-                    if self.data_loader.mouth_status is True:
-                        self.data_loader.frame_chunk.append(image)
-                        self.data_loader.calculated_keypoints.append(landmark)
+                    if self.datamodule.mouth_status is True:
+                        self.datamodule.frame_chunk.append(image)
+                        self.datamodule.calculated_keypoints.append(landmark)
 
                     if (
-                        self.data_loader.prev_status != self.data_loader.mouth_status
-                        and self.data_loader.prev_status == True
+                        self.datamodule.prev_status != self.datamodule.mouth_status
+                        and self.datamodule.prev_status == True
                     ):
-                        # Inference
                         numpy_arrayed_chunk = np.stack(
-                            self.data_loader.frame_chunk, axis=0
+                            self.datamodule.frame_chunk, axis=0
                         )
 
                         transcript = self.modelmodule(
                             self.__load_video(
                                 numpy_arrayed_chunk,
-                                self.data_loader.calculated_keypoints,
+                                self.datamodule.calculated_keypoints,
                             )
                         )
 
-                        self.data_loader.reset_chunk()
+                        self.datamodule.reset_chunk()
 
                         print(transcript)
 
-                    self.data_loader.prev_status = self.data_loader.mouth_status
+                    self.datamodule.prev_status = self.datamodule.mouth_status
 
 
 __all__ = [InferencePipeline]

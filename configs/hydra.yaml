@@ -13,7 +13,5 @@ gpus:
 slurm_job_id:
 transfer_frontend:
 transfer_encoder:
-src:
-format: avfoundation
 device: cpu
 debug: false
