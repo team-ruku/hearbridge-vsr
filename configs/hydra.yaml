@@ -11,13 +11,9 @@ exp_dir:
 exp_name:
 gpus:
 slurm_job_id:
-filename:
 transfer_frontend:
 transfer_encoder:
+src:
 format: avfoundation
 device: cpu
-time: false
 debug: false
-buffer_size: 32
-segment_length: 8
-context_length: 4
