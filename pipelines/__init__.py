@@ -37,10 +37,13 @@ class InferencePipeline(torch.nn.Module):
         self.modelmodule.to(self.device).eval()
         logger.debug(f"[Init] Setting VSR Model to evaluation mode")
 
+        self.loop = asyncio.new_event_loop()
+
     def __load_video(self, video, landmarks):
         video = torch.tensor(self.video_process(video, landmarks)).permute((0, 3, 1, 2))
         return self.video_transform(video)
 
+    @logger.catch
     async def infer(self, video, landmarks):
         transcript = self.modelmodule(self.__load_video(video, landmarks))
         return transcript
@@ -103,7 +106,7 @@ class InferencePipeline(torch.nn.Module):
                         )
 
                         logger.debug("[Infernece] Inference Task Created")
-                        asyncio.create_task(
+                        self.loop.create_task(
                             self.infer(
                                 numpy_arrayed_chunk,
                                 self.datamodule.calculated_keypoints,
