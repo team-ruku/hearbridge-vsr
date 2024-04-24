@@ -90,10 +90,13 @@ class InferencePipeline(torch.nn.Module):
                         and self.datamodule.prev_status == True
                     ):
                         logger.debug("[Infernece] Mouth is closed")
+
+                        logger.debug("[Infernece] Creating numpy stack")
                         numpy_arrayed_chunk = np.stack(
                             self.datamodule.frame_chunk, axis=0
                         )
 
+                        logger.debug("[Infernece] Thread Inference")
                         process = self.ctx.Process(
                             target=self.modelmodule,
                             args=(

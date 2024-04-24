@@ -20,6 +20,7 @@ class ModelModule(LightningModule):
         self.text_transform = TextTransform()
         self.token_list = self.text_transform.token_list
         self.model = E2E(len(self.token_list), self.backbone_args)
+        self.beam_search = self.get_beam_search_decoder()
 
     def get_beam_search_decoder(self, ctc_weight=0.1, beam_size=40):
         scorers = {
@@ -49,8 +50,6 @@ class ModelModule(LightningModule):
 
     @logger.catch
     def forward(self, sample, queue):
-        self.beam_search = self.get_beam_search_decoder()
-
         enc_feat, _ = self.model.encoder(sample.unsqueeze(0).to(self.device), None)
         enc_feat = enc_feat.squeeze(0)
 
