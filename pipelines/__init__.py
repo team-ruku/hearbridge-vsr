@@ -57,6 +57,8 @@ class InferencePipeline(torch.nn.Module):
             flipped = cv2.flip(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB), 1)
             timestamp_ms = int((time.time() - start_time) * 1000)
 
+            logger.debug(f"[Inference] Current Timestamp: {timestamp_ms}")
+
             self.datamodule.face_landmark.detect_async(
                 mp.Image(image_format=mp.ImageFormat.SRGB, data=flipped), timestamp_ms
             )

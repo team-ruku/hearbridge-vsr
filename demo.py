@@ -14,8 +14,7 @@ def main(cfg):
 
     logger.debug(f"[Config] Hydra config: {cfg}")
 
-    pipeline = InferencePipeline(cfg)
-    pipeline()
+    InferencePipeline(cfg)()
 
 
 if __name__ == "__main__":
