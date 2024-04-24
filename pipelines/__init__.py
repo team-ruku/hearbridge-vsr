@@ -1,5 +1,7 @@
 import time
+
 import cv2
+import mediapipe as mp
 import numpy as np
 import torch
 from loguru import logger
@@ -7,7 +9,6 @@ from loguru import logger
 from .data import *
 from .detectors import *
 from .model import ModelModule
-import mediapipe as mp
 
 
 class InferencePipeline(torch.nn.Module):
