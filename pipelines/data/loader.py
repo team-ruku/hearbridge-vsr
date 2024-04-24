@@ -45,17 +45,17 @@ class DataLoader:
         self.landmark_result = result
         self.landmark_output = output_image.numpy_view()
 
-    def __calculate_mouth_distance(self, a, b):
+    def calculate_mouth_distance(self, a, b):
         distance = abs(a.x - b.x) + abs(a.y - b.y) + abs(a.z - b.z)
 
         if distance < 0.003:
-            self.mouth_status = True
-        else:
             self.mouth_status = False
+        else:
+            self.mouth_status = True
 
         return distance
 
-    def __calculate_keypoints(self, landmark, image):
+    def calculate_keypoints(self, landmark, image):
         return [
             [  # 오른쪽 눈
                 int(landmark[472].x * image.shape[1]),
@@ -75,6 +75,6 @@ class DataLoader:
             ],
         ]
 
-    def __reset_chunk(self):
+    def reset_chunk(self):
         self.frame_chunk = []
         self.calculated_keypoints = []

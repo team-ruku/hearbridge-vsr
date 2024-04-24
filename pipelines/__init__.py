@@ -35,10 +35,10 @@ class InferencePipeline(torch.nn.Module):
 
     @logger.catch
     @torch.inference_mode()
-    def forward(self, video):
+    def forward(self):
         start_time = time.time()
 
-        self.data_loader.__reset_chunk()
+        self.data_loader.reset_chunk()
 
         while self.data_loader.capture.isOpened():
             status, frame = self.data_loader.capture.read()
@@ -61,14 +61,15 @@ class InferencePipeline(torch.nn.Module):
                 for (
                     detected_landmark
                 ) in self.data_loader.landmark_result.face_landmarks:
-                    self.data_loader.__calculate_mouth_distance(
+                    self.data_loader.calculate_mouth_distance(
                         detected_landmark[13], detected_landmark[14]
                     )
-                    landmark = self.data_loader.__calculate_keypoints(
+                    landmark = self.data_loader.calculate_keypoints(
                         detected_landmark, image
                     )
 
                     if self.data_loader.mouth_status is True:
+                        print("mouth opened")
                         self.data_loader.frame_chunk.append(image)
                         self.data_loader.calculated_keypoints.append(landmark)
 
@@ -76,11 +77,11 @@ class InferencePipeline(torch.nn.Module):
                         self.data_loader.prev_status != self.data_loader.mouth_status
                         and self.data_loader.prev_status == True
                     ):
+                        print("mouth closed")
                         # Inference
                         numpy_arrayed_chunk = np.stack(
                             self.data_loader.frame_chunk, axis=0
                         )
-                        self.data_loader.__reset_chunk()
 
                         transcript = self.modelmodule(
                             self.__load_video(
@@ -88,6 +89,8 @@ class InferencePipeline(torch.nn.Module):
                                 self.data_loader.calculated_keypoints,
                             )
                         )
+
+                        self.data_loader.reset_chunk()
 
                         print(transcript)
 
