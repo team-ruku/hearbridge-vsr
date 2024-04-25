@@ -26,6 +26,19 @@ class SinglePerson:
     def update_mouth_status(self) -> None:
         self.previous_mouth_status = self.current_mouth_status
 
+    def check_mouth_status(self) -> str:
+        if self.previous_mouth_status != self.current_mouth_status:
+            if not self.previous_mouth_status:
+                return "OPENED_SECOND"
+
+            if self.previous_mouth_status:
+                return "CLOSED"
+
+        if self.current_mouth_status:
+            return "OPENED"
+
+        return "IN_PROGRESS"
+
     def reset_status(self) -> None:
         self.infer_status = False
         self.mouth_closed_timestamp = 0
@@ -38,3 +51,7 @@ class SinglePerson:
     def reset(self) -> None:
         self.reset_chunk()
         self.reset_status()
+
+    def add_chunk(self, image, keypoints) -> None:
+        self.frame_chunk.append[image]
+        self.calculated_keypoints.append[keypoints]

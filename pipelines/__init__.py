@@ -47,11 +47,18 @@ class InferencePipeline(torch.nn.Module):
 
     @logger.catch
     @torch.inference_mode()
-    def infer(self, video, landmarks):
-        logger.debug("[Task] Created")
-        transcript = self.modelmodule(self.__load_video(video, landmarks))
-        print(transcript)
-        logger.debug("[Task] End")
+    def infer(self, single_person: SinglePerson):
+        logger.debug(f"[Task] Created for index {single_person.index}")
+
+        transcript: str = self.modelmodule(
+            self.__load_video(
+                np.stack(single_person.frame_chunk, axis=0),
+                single_person.calculated_keypoints,
+            )
+        )
+
+        print(transcript.lower())
+        logger.debug(f"[Task] Index {single_person.indx} task End")
         return transcript
 
     @logger.catch
@@ -101,36 +108,24 @@ class InferencePipeline(torch.nn.Module):
                     )
 
                     self.persons[idx].update_mouth_status()
+                    current_status = self.persons[idx].check_mouth_status()
 
-                    if self.persons[idx].current_mouth_status:
+                    if "OPENED" in current_status:
                         logger.debug("[Infernece] Mouth is opened")
-                        self.persons[idx].frame_chunk.append(image)
-                        self.persons[idx].calculated_keypoints.append(keypoints)
+                        self.persons[idx].add_chunk(image, keypoints)
 
-                        if not self.persons[idx].previous_mouth_status:
+                        if "SECOND" in current_status:
                             self.persons[idx].mouth_opened_timestamp = time.time()
 
-                    if (
-                        self.persons[idx].previous_mouth_status
-                        != self.persons[idx].current_mouth_status
-                        and self.persons[idx].previous_mouth_status
-                    ):
+                    if "CLOSED" in current_status:
                         logger.debug("[Infernece] Mouth is closed")
                         self.persons[idx].mouth_closed_timestamp = time.time()
 
                     if self.persons[idx].infer_status:
-                        logger.debug("[Infernece] Creating numpy stack")
-                        numpy_arrayed_chunk = np.stack(
-                            self.persons[idx].frame_chunk, axis=0
-                        )
-
                         logger.debug("[Infernece] Inference Task Created")
                         t = threading.Thread(
                             target=self.infer,
-                            args=(
-                                numpy_arrayed_chunk,
-                                self.persons[idx].calculated_keypoints,
-                            ),
+                            args=(self.persons[idx]),
                         )
 
                         t.start()
