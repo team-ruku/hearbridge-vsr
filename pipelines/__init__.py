@@ -106,7 +106,7 @@ class InferencePipeline(torch.nn.Module):
                     self.datamodule.calculate_mouth_distance(
                         detected_faces[13], detected_faces[14]
                     )
-                    landmark = self.datamodule.calculate_keypoints(
+                    keypoints = self.datamodule.calculate_keypoints(
                         detected_faces, image
                     )
 
@@ -115,7 +115,7 @@ class InferencePipeline(torch.nn.Module):
                     if self.datamodule.mouth_status:
                         logger.debug("[Infernece] Mouth is opened")
                         self.datamodule.frame_chunk.append(image)
-                        self.datamodule.calculated_keypoints.append(landmark)
+                        self.datamodule.calculated_keypoints.append(keypoints)
 
                         if not self.datamodule.prev_status:
                             self.last_mouth_opened = time.time()
