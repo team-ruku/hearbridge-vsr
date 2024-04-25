@@ -1,6 +1,5 @@
-import time
-import asyncio
 import threading
+import time
 
 import cv2
 import mediapipe as mp
@@ -8,7 +7,7 @@ import numpy as np
 import torch
 from loguru import logger
 
-from .data import VideoProcess, VideoTransform, DataModule
+from .data import DataModule, VideoProcess, VideoTransform
 from .model import ModelModule
 
 
@@ -38,6 +37,8 @@ class InferencePipeline(torch.nn.Module):
         self.modelmodule.to(self.device).eval()
         logger.debug(f"[Init] Setting VSR Model to evaluation mode")
 
+        self.inference_threads = []
+
     def __load_video(self, video, landmarks):
         video = torch.tensor(self.video_process(video, landmarks)).permute((0, 3, 1, 2))
         return self.video_transform(video)
@@ -55,8 +56,6 @@ class InferencePipeline(torch.nn.Module):
     def forward(self):
         start_timestamp = time.time()
         last_timestamp = 0
-
-        inference_threads = []
 
         self.datamodule.reset_chunk()
 
@@ -118,7 +117,7 @@ class InferencePipeline(torch.nn.Module):
                         )
 
                         t.start()
-                        inference_threads.append(t)
+                        self.inference_threads.append(t)
 
                         self.datamodule.reset_chunk()
 

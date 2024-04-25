@@ -1,5 +1,5 @@
 from .loader import DataModule
-from .transform import TextTransform, VideoTransform
 from .process import VideoProcess
+from .transform import TextTransform, VideoTransform
 
 __all__ = [DataModule, TextTransform, VideoTransform, VideoProcess]
