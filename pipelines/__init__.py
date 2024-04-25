@@ -46,19 +46,15 @@ class InferencePipeline(torch.nn.Module):
         return self.video_transform(video)
 
     @logger.catch
-    @torch.inference_mode()
-    def infer(self, single_person: SinglePerson):
-        logger.debug(f"[Task] Created for index {single_person.index}")
+    def infer(self, index, image, keypoints):
+        logger.debug(f"[Task] Created for index {index}")
 
         transcript: str = self.modelmodule(
-            self.__load_video(
-                np.stack(single_person.frame_chunk, axis=0),
-                single_person.calculated_keypoints,
-            )
+            self.__load_video(np.stack(image, axis=0), keypoints)
         )
 
         print(transcript.lower())
-        logger.debug(f"[Task] Index {single_person.indx} task End")
+        logger.debug(f"[Task] Index {index} task End")
         return transcript
 
     @logger.catch
@@ -107,7 +103,7 @@ class InferencePipeline(torch.nn.Module):
                         detected_face, image
                     )
 
-                    self.persons[idx].update_mouth_status()
+                    self.persons[idx].update_mouth_timestamp()
                     current_status = self.persons[idx].check_mouth_status()
 
                     if "OPENED" in current_status:
@@ -125,7 +121,11 @@ class InferencePipeline(torch.nn.Module):
                         logger.debug("[Infernece] Inference Task Created")
                         t = threading.Thread(
                             target=self.infer,
-                            args=(self.persons[idx]),
+                            args=(
+                                self.persons[idx].index,
+                                self.persons[idx].frame_chunk,
+                                self.persons[idx].calculated_keypoints,
+                            ),
                         )
 
                         t.start()
