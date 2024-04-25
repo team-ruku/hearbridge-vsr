@@ -56,6 +56,7 @@ class InferencePipeline(torch.nn.Module):
     def forward(self):
         start_timestamp = time.time()
         last_timestamp = 0
+        last_mouth_closed = -1
 
         self.datamodule.reset_chunk()
 
@@ -69,6 +70,7 @@ class InferencePipeline(torch.nn.Module):
             current_timestamp = int((time.time() - start_timestamp) * 1000)
 
             logger.debug(f"[Inference] Current Timestamp: {current_timestamp}")
+            logger.debug(f"[Inference] Last Mouth Closed: {last_mouth_closed}")
 
             if last_timestamp == current_timestamp:
                 continue
@@ -95,13 +97,21 @@ class InferencePipeline(torch.nn.Module):
                         logger.debug("[Infernece] Mouth is opened")
                         self.datamodule.frame_chunk.append(image)
                         self.datamodule.calculated_keypoints.append(landmark)
+                        last_mouth_closed = -1
 
                     if (
                         self.datamodule.prev_status != self.datamodule.mouth_status
                         and self.datamodule.prev_status == True
                     ):
                         logger.debug("[Infernece] Mouth is closed")
+                        last_mouth_closed = time.time()
 
+                    if (
+                        time.time() - last_mouth_closed
+                    ) > 2 and last_mouth_closed != -1:
+                        logger.debug(
+                            f"[Inference] Created task at {time.time()} - {last_mouth_closed}"
+                        )
                         logger.debug("[Infernece] Creating numpy stack")
                         numpy_arrayed_chunk = np.stack(
                             self.datamodule.frame_chunk, axis=0
@@ -120,6 +130,7 @@ class InferencePipeline(torch.nn.Module):
                         self.inference_threads.append(t)
 
                         self.datamodule.reset_chunk()
+                        last_mouth_closed = -1
 
                     self.datamodule.prev_status = self.datamodule.mouth_status
 
