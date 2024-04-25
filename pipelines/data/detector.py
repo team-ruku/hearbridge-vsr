@@ -20,6 +20,7 @@ class DetectorModule:
             ),
             running_mode=mp.tasks.vision.RunningMode.LIVE_STREAM,
             result_callback=self.__landmarker_callback,
+            num_faces=3,
         )
 
         self.face_landmark = mp.tasks.vision.FaceLandmarker.create_from_options(

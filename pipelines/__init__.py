@@ -90,6 +90,7 @@ class InferencePipeline(torch.nn.Module):
                 for idx, detected_face in enumerate(
                     self.datamodule.landmark_result.face_landmarks
                 ):
+                    logger.debug(f"[Inference] IDX {idx}")
                     if not idx in self.persons:
                         logger.debug(f"[Inference] Person {idx} created")
                         self.persons[idx] = SinglePerson(idx)
