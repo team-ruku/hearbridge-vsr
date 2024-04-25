@@ -7,7 +7,7 @@ import numpy as np
 from loguru import logger
 
 
-class DataModule:
+class DetectorModule:
     def __init__(self) -> None:
         self.face_landmark_options = mp.tasks.vision.FaceLandmarkerOptions(
             base_options=mp.tasks.BaseOptions(
@@ -29,9 +29,6 @@ class DataModule:
         self.landmark_result = None
         self.landmark_output = None
 
-        self.mouth_status = False  # 아가리가 벌려져있는지
-        self.prev_status = False  # 아가리 이전 상태
-
         self.capture = cv2.VideoCapture(0)
 
     @logger.catch
@@ -44,17 +41,17 @@ class DataModule:
         self.landmark_result = result
         self.landmark_output = output_image.numpy_view()
 
-    def calculate_mouth_distance(self, a, b):
+    @staticmethod
+    def calculate_mouth_distance(a, b) -> bool:
         distance = abs(a.x - b.x) + abs(a.y - b.y) + abs(a.z - b.z)
 
         if distance < 0.005:
-            self.mouth_status = False
+            return False
         else:
-            self.mouth_status = True
+            return True
 
-        return distance
-
-    def calculate_keypoints(self, landmark, image):
+    @staticmethod
+    def calculate_keypoints(landmark, image) -> np.ndarray:
         lmx = [
             [  # 오른쪽 눈
                 int(landmark[472].x * image.shape[1]),
@@ -75,7 +72,3 @@ class DataModule:
         ]
 
         return np.array(lmx)
-
-    def reset_chunk(self):
-        self.frame_chunk = []
-        self.calculated_keypoints = []

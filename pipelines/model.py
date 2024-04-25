@@ -20,9 +20,9 @@ class ModelModule(LightningModule):
         self.text_transform = TextTransform()
         self.token_list = self.text_transform.token_list
         self.model = E2E(len(self.token_list), self.backbone_args)
-        self.beam_search = self.get_beam_search_decoder()
+        self.beam_search = self.__get_beam_search_decoder()
 
-    def get_beam_search_decoder(self, ctc_weight=0.1, beam_size=40):
+    def __get_beam_search_decoder(self, ctc_weight=0.1, beam_size=40):
         scorers = {
             "decoder": self.model.decoder,
             "ctc": CTCPrefixScorer(self.model.ctc, self.model.eos),

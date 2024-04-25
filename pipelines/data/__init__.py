@@ -1,5 +1,6 @@
-from .loader import DataModule
+from .detector import DetectorModule
+from .person import SinglePerson
 from .process import VideoProcess
 from .transform import TextTransform, VideoTransform
 
-__all__ = [DataModule, TextTransform, VideoTransform, VideoProcess]
+__all__ = [DetectorModule, TextTransform, VideoTransform, VideoProcess, SinglePerson]

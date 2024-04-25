@@ -1,5 +1,6 @@
 import threading
 import time
+from typing import Dict
 
 import cv2
 import mediapipe as mp
@@ -7,7 +8,7 @@ import numpy as np
 import torch
 from loguru import logger
 
-from .data import DataModule, VideoProcess, VideoTransform
+from .data import DetectorModule, SinglePerson, VideoProcess, VideoTransform
 from .model import ModelModule
 
 
@@ -21,7 +22,7 @@ class InferencePipeline(torch.nn.Module):
 
         self.video_process = VideoProcess(convert_gray=False)
         self.video_transform = VideoTransform()
-        self.datamodule = DataModule()
+        self.datamodule = DetectorModule()
         self.modelmodule = ModelModule(cfg)
 
         logger.debug(f"[Init] Loaded Modules")
@@ -38,24 +39,14 @@ class InferencePipeline(torch.nn.Module):
         logger.debug(f"[Init] Setting VSR Model to evaluation mode")
 
         self.inference_threads = []
+        self.persons: Dict[str, SinglePerson] = {}
 
     def __load_video(self, video, landmarks):
         video = torch.tensor(self.video_process(video, landmarks)).permute((0, 3, 1, 2))
         return self.video_transform(video)
 
-    def __update_mouth_status(self):
-        if self.last_mouth_closed > self.last_mouth_opened:
-            passed_time = time.time() - self.last_mouth_closed
-
-            if passed_time > 2:
-                self.infer_status = True
-
-    def __reset_status(self):
-        self.infer_status = False
-        self.last_mouth_closed = 0
-        self.last_mouth_opened = 0
-
     @logger.catch
+    @torch.inference_mode()
     def infer(self, video, landmarks):
         logger.debug("[Task] Created")
         transcript = self.modelmodule(self.__load_video(video, landmarks))
@@ -66,12 +57,6 @@ class InferencePipeline(torch.nn.Module):
     @logger.catch
     @torch.inference_mode()
     def forward(self):
-        self.last_mouth_closed = 0
-        self.last_mouth_opened = 0
-        self.infer_status = False
-
-        self.datamodule.reset_chunk()
-
         start_timestamp = time.time()
         last_timestamp = 0
 
@@ -85,9 +70,6 @@ class InferencePipeline(torch.nn.Module):
             current_timestamp = int((time.time() - start_timestamp) * 1000)
 
             logger.debug(f"[Inference] Current Timestamp: {current_timestamp}")
-            logger.debug(f"[Inference] Last Mouth Closed: {self.last_mouth_closed}")
-            logger.debug(f"[Inference] Last Mouth Opened: {self.last_mouth_opened}")
-            logger.debug(f"[Inference] Infer Status: {self.infer_status}")
 
             if last_timestamp == current_timestamp:
                 continue
@@ -102,35 +84,44 @@ class InferencePipeline(torch.nn.Module):
             if self.datamodule.landmark_output is not None:
                 image = cv2.cvtColor(self.datamodule.landmark_output, cv2.COLOR_RGB2BGR)
 
-                for detected_faces in self.datamodule.landmark_result.face_landmarks:
-                    self.datamodule.calculate_mouth_distance(
-                        detected_faces[13], detected_faces[14]
+                for idx, detected_face in enumerate(
+                    self.datamodule.landmark_result.face_landmarks
+                ):
+                    if not idx in self.persons:
+                        logger.debug(f"[Inference] Person {idx} created")
+                        self.persons[idx] = SinglePerson(idx)
+
+                    self.persons[idx].current_mouth_status = (
+                        self.datamodule.calculate_mouth_distance(
+                            detected_face[13], detected_face[14]
+                        )
                     )
                     keypoints = self.datamodule.calculate_keypoints(
-                        detected_faces, image
+                        detected_face, image
                     )
 
-                    self.__update_mouth_status()
+                    self.persons[idx].update_mouth_status()
 
-                    if self.datamodule.mouth_status:
+                    if self.persons[idx].current_mouth_status:
                         logger.debug("[Infernece] Mouth is opened")
-                        self.datamodule.frame_chunk.append(image)
-                        self.datamodule.calculated_keypoints.append(keypoints)
+                        self.persons[idx].frame_chunk.append(image)
+                        self.persons[idx].calculated_keypoints.append(keypoints)
 
-                        if not self.datamodule.prev_status:
-                            self.last_mouth_opened = time.time()
+                        if not self.persons[idx].previous_mouth_status:
+                            self.persons[idx].mouth_opened_timestamp = time.time()
 
                     if (
-                        self.datamodule.prev_status != self.datamodule.mouth_status
-                        and self.datamodule.prev_status
+                        self.persons[idx].previous_mouth_status
+                        != self.persons[idx].current_mouth_status
+                        and self.persons[idx].previous_mouth_status
                     ):
                         logger.debug("[Infernece] Mouth is closed")
-                        self.last_mouth_closed = time.time()
+                        self.persons[idx].mouth_closed_timestamp = time.time()
 
-                    if self.infer_status:
+                    if self.persons[idx].infer_status:
                         logger.debug("[Infernece] Creating numpy stack")
                         numpy_arrayed_chunk = np.stack(
-                            self.datamodule.frame_chunk, axis=0
+                            self.persons[idx].frame_chunk, axis=0
                         )
 
                         logger.debug("[Infernece] Inference Task Created")
@@ -138,17 +129,16 @@ class InferencePipeline(torch.nn.Module):
                             target=self.infer,
                             args=(
                                 numpy_arrayed_chunk,
-                                self.datamodule.calculated_keypoints,
+                                self.persons[idx].calculated_keypoints,
                             ),
                         )
 
                         t.start()
                         self.inference_threads.append(t)
 
-                        self.datamodule.reset_chunk()
-                        self.__reset_status()
+                        self.persons[idx].reset()
 
-                    self.datamodule.prev_status = self.datamodule.mouth_status
+                    self.persons[idx].update_mouth_status()
 
 
 __all__ = [InferencePipeline]
