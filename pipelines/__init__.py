@@ -10,8 +10,6 @@ from loguru import logger
 from .data import DataModule, VideoProcess, VideoTransform
 from .model import ModelModule
 
-from typing import Literal
-
 
 class InferencePipeline(torch.nn.Module):
     def __init__(self, cfg):
@@ -51,7 +49,6 @@ class InferencePipeline(torch.nn.Module):
 
             if passed_time > 2:
                 self.infer_status = True
-                pass
 
     def __reset_status(self):
         self.infer_status = False
