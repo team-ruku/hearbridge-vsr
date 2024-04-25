@@ -13,9 +13,6 @@ from .model import ModelModule
 from typing import Literal
 
 
-MOUTH_STATUS_TYPE = Literal["CLOSED", "OPENED", "SHORTLY_REOPENED", "NEED_INFER"]
-
-
 class InferencePipeline(torch.nn.Module):
     def __init__(self, cfg):
         super(InferencePipeline, self).__init__()
@@ -53,12 +50,13 @@ class InferencePipeline(torch.nn.Module):
             passed_time = time.time() - self.last_mouth_closed
 
             if passed_time > 2:
-                # It is okay to infer
+                self.infer_status = True
                 pass
 
-        if self.last_mouth_opened > self.last_mouth_closed:
-            # We will think about that
-            pass
+    def __reset_status(self):
+        self.infer_status = False
+        self.last_mouth_closed = 0
+        self.last_mouth_opened = 0
 
     @logger.catch
     def infer(self, video, landmarks):
@@ -73,7 +71,7 @@ class InferencePipeline(torch.nn.Module):
     def forward(self):
         self.last_mouth_closed = 0
         self.last_mouth_opened = 0
-        self.last_mouth_status: MOUTH_STATUS_TYPE = "CLOSED"
+        self.infer_status = False
 
         self.datamodule.reset_chunk()
 
@@ -90,8 +88,9 @@ class InferencePipeline(torch.nn.Module):
             current_timestamp = int((time.time() - start_timestamp) * 1000)
 
             logger.debug(f"[Inference] Current Timestamp: {current_timestamp}")
-            logger.debug(f"[Inference] Last Mouth Closed: {last_mouth_closed}")
-            logger.debug(f"[Inference] Last Mouth Closed: {last_mouth_status}")
+            logger.debug(f"[Inference] Last Mouth Closed: {self.last_mouth_closed}")
+            logger.debug(f"[Inference] Last Mouth Opened: {self.last_mouth_opened}")
+            logger.debug(f"[Inference] Infer Status: {self.infer_status}")
 
             if last_timestamp == current_timestamp:
                 continue
@@ -114,27 +113,24 @@ class InferencePipeline(torch.nn.Module):
                         detected_faces, image
                     )
 
-                    if self.datamodule.mouth_status is True:
+                    self.__update_mouth_status()
+
+                    if self.datamodule.mouth_status:
                         logger.debug("[Infernece] Mouth is opened")
                         self.datamodule.frame_chunk.append(image)
                         self.datamodule.calculated_keypoints.append(landmark)
 
-                        if self.datamodule.prev_status == False:
+                        if not self.datamodule.prev_status:
                             self.last_mouth_opened = time.time()
 
                     if (
                         self.datamodule.prev_status != self.datamodule.mouth_status
-                        and self.datamodule.prev_status == True
+                        and self.datamodule.prev_status
                     ):
                         logger.debug("[Infernece] Mouth is closed")
+                        self.last_mouth_closed = time.time()
 
-                        last_mouth_closed = time.time()
-                        last_mouth_status = 1
-
-                    if (time.time() - last_mouth_closed) > 2 and last_mouth_status > 0:
-                        logger.debug(
-                            f"[Inference] Created task at {time.time()} - {last_mouth_closed}"
-                        )
+                    if self.infer_status:
                         logger.debug("[Infernece] Creating numpy stack")
                         numpy_arrayed_chunk = np.stack(
                             self.datamodule.frame_chunk, axis=0
@@ -153,8 +149,7 @@ class InferencePipeline(torch.nn.Module):
                         self.inference_threads.append(t)
 
                         self.datamodule.reset_chunk()
-                        last_mouth_closed = 0
-                        last_mouth_status = -1
+                        self.__reset_status()
 
                     self.datamodule.prev_status = self.datamodule.mouth_status
 
