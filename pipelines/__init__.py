@@ -1,5 +1,6 @@
 import time
 import asyncio
+import threading
 
 import cv2
 import mediapipe as mp
@@ -37,14 +38,12 @@ class InferencePipeline(torch.nn.Module):
         self.modelmodule.to(self.device).eval()
         logger.debug(f"[Init] Setting VSR Model to evaluation mode")
 
-        self.loop = asyncio.new_event_loop()
-
     def __load_video(self, video, landmarks):
         video = torch.tensor(self.video_process(video, landmarks)).permute((0, 3, 1, 2))
         return self.video_transform(video)
 
     @logger.catch
-    async def infer(self, video, landmarks):
+    def infer(self, video, landmarks):
         logger.debug("[Task] Created")
         transcript = self.modelmodule(self.__load_video(video, landmarks))
         print(transcript)
@@ -53,13 +52,13 @@ class InferencePipeline(torch.nn.Module):
 
     @logger.catch
     @torch.inference_mode()
-    async def forward(self):
-        start_time = time.time()
+    def forward(self):
+        start_timestamp = time.time()
         last_timestamp = 0
 
+        inference_threads = []
+
         self.datamodule.reset_chunk()
-        # self.ctx = torch.multiprocessing.get_context("spawn")
-        # self.queue = self.ctx.Queue()
 
         while self.datamodule.capture.isOpened():
             status, frame = self.datamodule.capture.read()
@@ -68,18 +67,19 @@ class InferencePipeline(torch.nn.Module):
                 continue
 
             flipped = cv2.flip(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB), 1)
-            timestamp_ms = int((time.time() - start_time) * 1000)
+            current_timestamp = int((time.time() - start_timestamp) * 1000)
 
-            logger.debug(f"[Inference] Current Timestamp: {timestamp_ms}")
+            logger.debug(f"[Inference] Current Timestamp: {current_timestamp}")
 
-            if last_timestamp == timestamp_ms:
+            if last_timestamp == current_timestamp:
                 continue
 
             self.datamodule.face_landmark.detect_async(
-                mp.Image(image_format=mp.ImageFormat.SRGB, data=flipped), timestamp_ms
+                mp.Image(image_format=mp.ImageFormat.SRGB, data=flipped),
+                current_timestamp,
             )
 
-            last_timestamp = timestamp_ms
+            last_timestamp = current_timestamp
 
             if self.datamodule.landmark_output is not None:
                 image = cv2.cvtColor(self.datamodule.landmark_output, cv2.COLOR_RGB2BGR)
@@ -109,35 +109,18 @@ class InferencePipeline(torch.nn.Module):
                         )
 
                         logger.debug("[Infernece] Inference Task Created")
-                        infer_task = asyncio.create_task(
-                            self.infer(
+                        t = threading.Thread(
+                            target=self.infer,
+                            args=(
                                 numpy_arrayed_chunk,
                                 self.datamodule.calculated_keypoints,
-                            )
+                            ),
                         )
 
-                        await infer_task
-                        # process = self.ctx.Process(
-                        #    target=self.modelmodule,
-                        #    args=(
-                        #        self.__load_video(
-                        #            numpy_arrayed_chunk,
-                        #            self.datamodule.calculated_keypoints,
-                        #        ),
-                        #        self.queue,
-                        #    ),
-                        # )
-                        # process.start()
-
-                        if self.debug:
-                            logger.debug("[Inference] Task Lists:")
-                            tasks = asyncio.all_tasks(self.loop)
-                            for task in tasks:
-                                logger.debug(f"{task.get_name()} -> {task.get_coro()}")
+                        t.start()
+                        inference_threads.append(t)
 
                         self.datamodule.reset_chunk()
-
-                        # process.join()
 
                     self.datamodule.prev_status = self.datamodule.mouth_status
 
