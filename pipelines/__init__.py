@@ -93,11 +93,14 @@ class InferencePipeline(torch.nn.Module):
                         detected_faces, image
                     )
 
-                    if self.datamodule.mouth_status is True:
+                    if self.datamodule.mouth_status is True or last_mouth_closed != -1:
                         logger.debug("[Infernece] Mouth is opened")
+                        if last_mouth_closed != -1:
+                            logger.debug("This frame is between with error corrections")
+                            last_mouth_closed = -2
+
                         self.datamodule.frame_chunk.append(image)
                         self.datamodule.calculated_keypoints.append(landmark)
-                        last_mouth_closed = -1
 
                     if (
                         self.datamodule.prev_status != self.datamodule.mouth_status
@@ -106,9 +109,7 @@ class InferencePipeline(torch.nn.Module):
                         logger.debug("[Infernece] Mouth is closed")
                         last_mouth_closed = time.time()
 
-                    if (
-                        time.time() - last_mouth_closed
-                    ) > 2 and last_mouth_closed != -1:
+                    if (time.time() - last_mouth_closed) > 2 and last_mouth_closed > 0:
                         logger.debug(
                             f"[Inference] Created task at {time.time()} - {last_mouth_closed}"
                         )
