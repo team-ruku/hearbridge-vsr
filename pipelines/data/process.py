@@ -8,7 +8,6 @@ import os
 
 import cv2
 import numpy as np
-from loguru import logger
 
 
 def linear_interpolate(landmarks, start_idx, stop_idx):
