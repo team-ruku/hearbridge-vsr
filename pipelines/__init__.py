@@ -19,10 +19,11 @@ class InferencePipeline(torch.nn.Module):
         self.debug = cfg.debug
 
         logger.debug(f"[Config] Accel device: {self.device}")
+        logger.debug(f"[Config] Face Number: {cfg.num_faces}")
 
         self.video_process = VideoProcess(convert_gray=False)
         self.video_transform = VideoTransform()
-        self.datamodule = DetectorModule()
+        self.datamodule = DetectorModule(cfg.num_faces)
         self.modelmodule = ModelModule(cfg)
 
         logger.debug(f"[Init] Loaded Modules")
@@ -53,7 +54,7 @@ class InferencePipeline(torch.nn.Module):
             self.__load_video(np.stack(image, axis=0), keypoints)
         )
 
-        print(transcript.lower())
+        print(f"{index} - {transcript.lower()}")
         logger.debug(f"[Task] Index {index} task End")
         return transcript
 

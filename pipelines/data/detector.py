@@ -8,7 +8,7 @@ from loguru import logger
 
 
 class DetectorModule:
-    def __init__(self) -> None:
+    def __init__(self, num_faces: int) -> None:
         self.face_landmark_options = mp.tasks.vision.FaceLandmarkerOptions(
             base_options=mp.tasks.BaseOptions(
                 model_asset_path=os.path.join(
@@ -20,7 +20,7 @@ class DetectorModule:
             ),
             running_mode=mp.tasks.vision.RunningMode.LIVE_STREAM,
             result_callback=self.__landmarker_callback,
-            num_faces=3,
+            num_faces=num_faces,
         )
 
         self.face_landmark = mp.tasks.vision.FaceLandmarker.create_from_options(
