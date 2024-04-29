@@ -1,5 +1,3 @@
-import logging
-
 import torch
 
 from espnet.nets.pytorch_backend.backbones.conv1d_extractor import Conv1dResNet

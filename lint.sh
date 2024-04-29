@@ -1,3 +1,4 @@
 #!/bin/bash
 
-isort . && black .
+ruff check --fix --extend-select I
+ruff format

@@ -3,9 +3,6 @@
 
 """Transformer speech recognition model (pytorch)."""
 
-import logging
-
-import numpy
 import torch
 
 from espnet.nets.pytorch_backend.ctc import CTC

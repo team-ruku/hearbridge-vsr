@@ -4,32 +4,22 @@
 """Transformer speech recognition model (pytorch)."""
 
 import logging
-import math
-from argparse import Namespace
 from distutils.util import strtobool
 
-import numpy
 import torch
 
-from espnet.nets.ctc_prefix_score import CTCPrefixScore
-from espnet.nets.e2e_asr_common import ErrorCalculator, end_detect
+from espnet.nets.e2e_asr_common import ErrorCalculator
 from espnet.nets.pytorch_backend.ctc import CTC
 from espnet.nets.pytorch_backend.nets_utils import (
     get_subsample,
-    make_non_pad_mask,
-    th_accuracy,
-)
-from espnet.nets.pytorch_backend.transformer.add_sos_eos import add_sos_eos
-from espnet.nets.pytorch_backend.transformer.attention import (  # noqa: H301
-    MultiHeadedAttention,
-    RelPositionMultiHeadedAttention,
 )
 from espnet.nets.pytorch_backend.transformer.decoder import Decoder
 from espnet.nets.pytorch_backend.transformer.encoder import Encoder
 from espnet.nets.pytorch_backend.transformer.label_smoothing_loss import (
     LabelSmoothingLoss,
-)  # noqa: H301
-from espnet.nets.pytorch_backend.transformer.mask import subsequent_mask, target_mask
+)
+
+# noqa: H301
 from espnet.nets.scorers.ctc import CTCPrefixScorer
 
 

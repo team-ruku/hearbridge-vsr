@@ -26,7 +26,7 @@ class InferencePipeline(torch.nn.Module):
         self.datamodule = DetectorModule(cfg.num_faces)
         self.modelmodule = ModelModule(cfg)
 
-        logger.debug(f"[Init] Loaded Modules")
+        logger.debug("[Init] Loaded Modules")
 
         self.modelmodule.model.load_state_dict(
             torch.load(
@@ -34,10 +34,10 @@ class InferencePipeline(torch.nn.Module):
                 map_location=lambda storage, loc: storage,
             )
         )
-        logger.debug(f"[Init] Loaded VSR Model")
+        logger.debug("[Init] Loaded VSR Model")
 
         self.modelmodule.to(self.device).eval()
-        logger.debug(f"[Init] Setting VSR Model to evaluation mode")
+        logger.debug("[Init] Setting VSR Model to evaluation mode")
 
         self.inference_threads = []
         self.persons: Dict[str, SinglePerson] = {}
@@ -92,7 +92,7 @@ class InferencePipeline(torch.nn.Module):
                     self.datamodule.landmark_result.face_landmarks
                 ):
                     logger.debug(f"[Inference] IDX {idx}")
-                    if not idx in self.persons:
+                    if idx not in self.persons:
                         logger.debug(f"[Inference] Person {idx} created")
                         self.persons[idx] = SinglePerson(idx)
 
