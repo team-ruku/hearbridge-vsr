@@ -136,6 +136,10 @@ class InferencePipeline(torch.nn.Module):
 
                         self.persons[idx].reset()
 
+                    self.datamodule.putText(
+                        image, detected_face, self.persons[idx].inferred_string
+                    )
+
                     self.persons[idx].update_mouth_status()
 
 

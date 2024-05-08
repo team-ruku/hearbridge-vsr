@@ -5,6 +5,7 @@ import cv2
 import mediapipe as mp
 import numpy as np
 from loguru import logger
+from typing import List
 
 
 class DetectorModule:
@@ -77,3 +78,19 @@ class DetectorModule:
     @staticmethod
     def show(image):
         cv2.imshow("HearBridge", image)
+
+    @staticmethod
+    def putText(image, keypoint, array: List):
+        cv2.putText(
+            image,
+            " ".join(array),
+            (
+                int(keypoint[10].x * image.shape[1]),
+                int(keypoint[10].y * image.shape[0]),
+            ),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            1,
+            (0, 0, 0),
+            2,
+            cv2.LINE_AA,
+        )
