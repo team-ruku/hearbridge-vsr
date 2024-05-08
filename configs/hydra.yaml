@@ -16,3 +16,4 @@ transfer_encoder:
 device: cpu
 debug: false
 num_faces: 3
+window: false

@@ -17,6 +17,7 @@ class SinglePerson:
         self.mouth_opened_timestamp = 0
 
         self.infer_status = False
+        self.inferend_string = []
 
     def __log(self, message: str) -> None:
         logger.debug(f"[Person {self.index}] {message}")

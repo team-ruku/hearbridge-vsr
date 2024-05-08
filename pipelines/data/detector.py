@@ -73,3 +73,7 @@ class DetectorModule:
         ]
 
         return np.array(lmx)
+
+    @staticmethod
+    def show(image):
+        cv2.imshow("HearBridge", image)

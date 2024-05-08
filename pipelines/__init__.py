@@ -55,6 +55,7 @@ class InferencePipeline(torch.nn.Module):
         )
 
         print(f"{index} - {transcript.lower()}")
+        self.persons[index].inferred_string.append(transcript.lower())
         logger.debug(f"[Task] Index {index} task End")
         return transcript
 
@@ -96,10 +97,10 @@ class InferencePipeline(torch.nn.Module):
                         logger.debug(f"[Inference] Person {idx} created")
                         self.persons[idx] = SinglePerson(idx)
 
-                    self.persons[
-                        idx
-                    ].current_mouth_status = self.datamodule.calculate_mouth_distance(
-                        detected_face[13], detected_face[14]
+                    self.persons[idx].current_mouth_status = (
+                        self.datamodule.calculate_mouth_distance(
+                            detected_face[13], detected_face[14]
+                        )
                     )
                     keypoints = self.datamodule.calculate_keypoints(
                         detected_face, image
