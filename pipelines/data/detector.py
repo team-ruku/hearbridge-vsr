@@ -89,7 +89,7 @@ class DetectorModule:
                 int(keypoint[10].y * image.shape[0]),
             ),
             cv2.FONT_HERSHEY_SIMPLEX,
-            1,
+            1.4,
             (0, 0, 0),
             2,
             cv2.LINE_AA,

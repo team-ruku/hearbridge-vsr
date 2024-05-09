@@ -73,3 +73,7 @@ class SinglePerson:
         self.__log("ADD_CHUNK")
         self.frame_chunk.append(image)
         self.calculated_keypoints.append(keypoints)
+
+    def reset_string(self) -> None:
+        self.__log("RESET_STRING")
+        self.inferred_string = []

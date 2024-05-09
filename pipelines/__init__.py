@@ -61,6 +61,15 @@ class InferencePipeline(torch.nn.Module):
         logger.debug(f"[Task] Index {index} task End")
         return transcript
 
+    def __set_interval(self, func, sec):
+        def func_wrapper():
+            self.__set_interval(func, sec)
+            func()
+
+        t = threading.Timer(sec, func_wrapper)
+        t.start()
+        return t
+
     @logger.catch
     @torch.inference_mode()
     def forward(self):
@@ -98,6 +107,8 @@ class InferencePipeline(torch.nn.Module):
                     if idx not in self.persons:
                         logger.debug(f"[Inference] Person {idx} created")
                         self.persons[idx] = SinglePerson(idx)
+
+                    self.__set_interval(self.persons[idx].reset_string, 20)
 
                     self.persons[idx].current_mouth_status = (
                         self.datamodule.calculate_mouth_distance(
