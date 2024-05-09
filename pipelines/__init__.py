@@ -61,15 +61,6 @@ class InferencePipeline(torch.nn.Module):
         logger.debug(f"[Task] Index {index} task End")
         return transcript
 
-    def __set_interval(self, func, sec):
-        def func_wrapper():
-            self.__set_interval(func, sec)
-            func()
-
-        t = threading.Timer(sec, func_wrapper)
-        t.start()
-        return t
-
     @logger.catch
     @torch.inference_mode()
     def forward(self):
@@ -108,8 +99,6 @@ class InferencePipeline(torch.nn.Module):
                         logger.debug(f"[Inference] Person {idx} created")
                         self.persons[idx] = SinglePerson(idx)
 
-                    self.__set_interval(self.persons[idx].reset_string, 20)
-
                     self.persons[idx].current_mouth_status = (
                         self.datamodule.calculate_mouth_distance(
                             detected_face[13], detected_face[14]
@@ -120,6 +109,7 @@ class InferencePipeline(torch.nn.Module):
                     )
 
                     self.persons[idx].update_mouth_timestamp()
+                    self.persons[idx].update_string_status()
                     current_status = self.persons[idx].check_mouth_status()
 
                     if "OPENED" in current_status:

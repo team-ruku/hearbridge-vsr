@@ -16,6 +16,8 @@ class SinglePerson:
         self.mouth_closed_timestamp = 0
         self.mouth_opened_timestamp = 0
 
+        self.last_mouth_timestamp = -1
+
         self.infer_status = False
         self.inferred_string = []
 
@@ -29,6 +31,14 @@ class SinglePerson:
 
             if passed_time > 2:
                 self.infer_status = True
+
+    def update_string_status(self) -> None:
+        self.__log("UPDATE_STRING_STATUS")
+        if self.last_mouth_timestamp > 0:
+            passed_time = time.time() - self.last_mouth_timestamp
+
+            if passed_time > 20:
+                self.reset_string()
 
     def update_mouth_status(self) -> None:
         self.__log("UPDATE_MOUTH_STATUS")
@@ -55,6 +65,8 @@ class SinglePerson:
 
     def reset_status(self) -> None:
         self.__log("RESET_STATUS")
+        self.last_mouth_timestamp = self.mouth_closed_timestamp
+
         self.infer_status = False
         self.mouth_closed_timestamp = 0
         self.mouth_opened_timestamp = 0
@@ -77,3 +89,4 @@ class SinglePerson:
     def reset_string(self) -> None:
         self.__log("RESET_STRING")
         self.inferred_string = []
+        self.last_mouth_timestamp = -1
