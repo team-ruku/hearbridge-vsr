@@ -17,9 +17,11 @@ class InferencePipeline(torch.nn.Module):
         super(InferencePipeline, self).__init__()
         self.device = cfg.device
         self.debug = cfg.debug
+        self.show_window = cfg.window
 
         logger.debug(f"[Config] Accel device: {self.device}")
         logger.debug(f"[Config] Face Number: {cfg.num_faces}")
+        logger.debug(f"[Config] Window: {cfg.window}")
 
         self.video_process = VideoProcess(convert_gray=False)
         self.video_transform = VideoTransform()
@@ -141,6 +143,16 @@ class InferencePipeline(torch.nn.Module):
                     )
 
                     self.persons[idx].update_mouth_status()
+
+                if self.show_window:
+                    logger.debug("[Inference] Showing Window")
+                    cv2.imshow("HearBridge", image)
+                    key = cv2.waitKey(1) & 0xFF
+
+                    if key == 27:
+                        break
+
+        cv2.destroyAllWindows()
 
 
 __all__ = [InferencePipeline]
