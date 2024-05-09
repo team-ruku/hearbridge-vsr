@@ -90,7 +90,7 @@ class DetectorModule:
             ),
             cv2.FONT_HERSHEY_SIMPLEX,
             1.4,
-            (0, 0, 0),
+            (255, 255, 255),
             2,
             cv2.LINE_AA,
         )

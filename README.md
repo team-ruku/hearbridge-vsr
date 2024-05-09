@@ -7,8 +7,8 @@
 1. Setup the conda environment.
 
 ```bash
-conda create -y -n hearbridge python=3.8
-conda activate hearbridge
+conda create -y -n hearbridge-vsr python=3.8
+conda activate hearbridge-vsr
 ```
 
 2. Install requirements.
@@ -32,6 +32,7 @@ python3 demo.py
 ```
 
 - For debugging, add `debug` flag.
+- For showing camera, add `window` flag.
 
 ## Reference
 
